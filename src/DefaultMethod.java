@@ -21,6 +21,7 @@ class Dog implements Animalss, Pet {
 //    public void sleep() {
 //        System.out.println("Dog is sleeping");
 //    }
+    //bắt buộc phải override nếu có 2 method interface cùng tên
     public void sleep() { Pet.super.sleep(); }
 
 }

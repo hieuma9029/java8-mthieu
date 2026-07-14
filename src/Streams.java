@@ -21,7 +21,7 @@ class Employee {
 
 }
 
-public class Steams {
+public class Streams {
     public static void main(String[] args) {
         List<Integer> scores = Arrays.asList(11, 42, 53, 6, 3, 7, 8, 10, 2, 9);
         List<String> names = Arrays.asList("hieu", "an", "nam");

@@ -3,12 +3,14 @@ interface Animalss {
     void eat();
 
     default void sleep() {
-        System.out.println("Animalss is sleeping");
+        System.out.println("Animal is sleeping");
     }
-
+}
+interface Pet {
+    default void sleep() { System.out.println("Pet is sleeping"); }
 }
 
-class Dog implements Animalss {
+class Dog implements Animalss, Pet {
 
     @Override
     public void eat() {
@@ -16,9 +18,10 @@ class Dog implements Animalss {
     }
 
     @Override
-    public void sleep() {
-        System.out.println("Dog is sleeping");
-    }
+//    public void sleep() {
+//        System.out.println("Dog is sleeping");
+//    }
+    public void sleep() { Pet.super.sleep(); }
 
 }
 

@@ -31,7 +31,5 @@ public class DefaultMethod {
         dog.eat();
 
         dog.sleep();
-
     }
-
 }

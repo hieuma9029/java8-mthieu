@@ -14,15 +14,30 @@ interface Animal {
     String toString();
 
 }
+
 public class Functional_Interface {
     public static void main(String[] args) {
 
-        Animal dog = () -> System.out.println("Dog is eating");
+        Animal dog = new Animal() {
+
+            @Override
+            public void eat() {
+                System.out.println("Dog is eating");
+            }
+
+            @Override
+            public String toString() {
+                return "Đây là chú chó Husky";
+            }
+
+        };
 
         dog.eat();
 
         dog.sleep();
 
         Animal.run();
+
+        System.out.println(dog);
     }
 }

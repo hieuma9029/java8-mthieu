@@ -33,7 +33,7 @@ public class Main {
                                 200,
                                 false),
                         new Product(6, "Ipad", 6,
-                                LocalDate.of(2025,12,27),
+                                LocalDate.of(2026,12,27),
                                 202,
                                 false),
                         new Product(7, "Macbook", 7,
@@ -49,7 +49,7 @@ public class Main {
                                 29,
                                 false),
                         new Product(10, "Chair", 10,
-                                LocalDate.of(2025,12,1),
+                                LocalDate.of(2026,12,1),
                                 220,
                                 true)
     )
@@ -81,12 +81,12 @@ public class Main {
 
     //k dùng stream
 //    public static List<Product> filterProductByQulity(List<Product> listProduct) {
-//        List<Product> result = new ArrayList<>();
+//        List<Product> result1 = new ArrayList<>();
 //        for (Product product : listProduct) {
 //            if (product.getQulity() > 0 && !product.isDelete())
-//            result.add(product);
+//            result1.add(product);
 //        }
-//        return result;
+//        return result1;
 //    }
     //dùng stream
     public static List<Product> filterProductByQulity(List<Product> listProduct) {
@@ -96,13 +96,37 @@ public class Main {
                 .collect(Collectors.toList());
     }
 
+    //k dùng steam
+//    public static List<Product> filterProductBySaleDate(List<Product> ListProduct) {
+//        List<Product> result2 = new ArrayList<>();
+//        for (Product product : ListProduct) {
+//            if (product.getSaleDate().isAfter(LocalDate.now()) &&
+//                    !product.isDelete()) {
+//                result2.add(product);
+//            }
+//        }
+//        return result2;
+//    }
+    //dùng stream
+    public static List<Product> filterProductBySaleDate(List<Product> ListProduct) {
+        return ListProduct.stream()
+                .filter(product -> product.getSaleDate().isAfter(LocalDate.now()))
+                .filter(product -> !product.isDelete())
+                .collect(Collectors.toList());
+    }
+
     public static void main(String[] args) {
         List<Product> products = createListProduct();
 
         String name = filterProductById(products,7);
         List<Product> result = filterProductByQulity(products);
+        List<Product> result1 = filterProductBySaleDate(products);
 
+        System.out.println("bài 11");
         System.out.println(name);
+        System.out.println("bài 12");
         result.forEach(System.out::println);
+        System.out.println("bài 13");
+        result1.forEach(System.out::println);
     }
 }

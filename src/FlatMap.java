@@ -13,6 +13,10 @@ class Category {
         this.products = products;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public List<Product> getProducts() {
         return products;
     }
@@ -39,10 +43,14 @@ public class FlatMap {
                         )
                 )
         );
+        categories.stream()
+                .map(Category::getName)
+                .forEach(System.out::println);
+
         List<String> names = categories.stream()
                 //lấy phần Product của Category
                 .flatMap(category -> category.getProducts().stream())
-                .filter(product -> product.getPrice() > 2000)
+                .filter(product -> product.getPrice() >= 2000)
                 .map(Product::getName)
                 .collect(Collectors.toList());
 

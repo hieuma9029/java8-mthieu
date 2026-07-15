@@ -8,7 +8,7 @@ public class Product {
     private String name;
     private int categoryId;
     private LocalDate saleDate;
-    private int quantity;
+    private int qulity;
     private boolean isDelete;
 
     @Override
@@ -18,7 +18,7 @@ public class Product {
                 ", name='" + name + '\'' +
                 ", categoryId=" + categoryId +
                 ", saleDate=" + saleDate +
-                ", quantity=" + quantity +
+                ", quantity=" + qulity +
                 ", isDelete=" + isDelete +
                 '}';
     }
@@ -39,8 +39,8 @@ public class Product {
         this.saleDate = saleDate;
     }
 
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
+    public void setQulity(int quantity) {
+        this.qulity = quantity;
     }
 
     public void setDelete(boolean delete) {
@@ -63,8 +63,8 @@ public class Product {
         return saleDate;
     }
 
-    public int getQuantity() {
-        return quantity;
+    public int getQulity() {
+        return qulity;
     }
 
     public boolean isDelete() {
@@ -82,7 +82,7 @@ public class Product {
         this.name = name;
         this.categoryId = categoryId;
         this.saleDate = saleDate;
-        this.quantity = quantity;
+        this.qulity = quantity;
         this.isDelete = isDelete;
     }
 }

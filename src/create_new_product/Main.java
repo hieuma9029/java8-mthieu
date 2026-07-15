@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -78,11 +79,30 @@ public class Main {
                 .orElse(null);
     }
 
+    //k dùng stream
+//    public static List<Product> filterProductByQulity(List<Product> listProduct) {
+//        List<Product> result = new ArrayList<>();
+//        for (Product product : listProduct) {
+//            if (product.getQulity() > 0 && !product.isDelete())
+//            result.add(product);
+//        }
+//        return result;
+//    }
+    //dùng stream
+    public static List<Product> filterProductByQulity(List<Product> listProduct) {
+        return listProduct.stream()
+                .filter(product -> product.getQulity() > 0)
+                .filter(product -> !product.isDelete())
+                .collect(Collectors.toList());
+    }
+
     public static void main(String[] args) {
         List<Product> products = createListProduct();
 
         String name = filterProductById(products,7);
+        List<Product> result = filterProductByQulity(products);
 
         System.out.println(name);
+        result.forEach(System.out::println);
     }
 }

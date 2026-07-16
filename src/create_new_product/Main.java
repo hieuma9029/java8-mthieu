@@ -115,12 +115,67 @@ public class Main {
                 .collect(Collectors.toList());
     }
 
+    //k dùng stream
+//    public static int totalProduct(List<Product> ListProduct) {
+//        int sum = 0;
+//        for (Product product : ListProduct) {
+//            if (!product.isDelete()) {
+//                sum += product.getQulity();
+//            }
+//        }
+//        return sum;
+//    }
+    //dùng stream
+    public static int totalProduct(List<Product> ListProduct) {
+        return ListProduct.stream()
+                .filter(product -> !product.isDelete())
+                .map(Product::getQulity)
+                .reduce(0, Integer::sum);
+    }
+
+    //k dùng stream
+//    public static boolean isHaveProductInCategory(List<Product> listProduct, int categoryId) {
+//        for (Product product : listProduct) {
+//            if (product.getCategoryId() == categoryId) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
+    //dùng stream
+    public static boolean isHaveProductInCategory(List<Product> listProduct, int categoryId) {
+        return listProduct.stream()
+                .anyMatch(product -> product.getCategoryId() == categoryId);
+    }
+
+    //k dùng stream
+//    public static List<Product> fiterProductBySaleDate(List<Product> listProduct) {
+//        List<Product> result = new ArrayList<>();
+//        for (Product product : listProduct) {
+//            if (product.getSaleDate().isAfter(LocalDate.now()) &&
+//            product.getQulity()>0){
+//                result.add(product);
+//            }
+//        }
+//        return result;
+//    }
+    //dùng stream
+    public static List<Product> fiterProductBySaleDate(List<Product> listProduct) {
+        return listProduct.stream()
+                .filter(product -> product.getSaleDate().isAfter(LocalDate.now()))
+                .filter(product -> product.getQulity() > 0)
+                .collect(Collectors.toList());
+    }
+
     public static void main(String[] args) {
         List<Product> products = createListProduct();
 
         String name = filterProductById(products,7);
         List<Product> result = filterProductByQulity(products);
         List<Product> result1 = filterProductBySaleDate(products);
+        int sum = totalProduct(products);
+        boolean result2 = isHaveProductInCategory(products, 2);
+        List<Product> result3 = fiterProductBySaleDate(products);
 
         System.out.println("bài 11");
         System.out.println(name);
@@ -128,5 +183,11 @@ public class Main {
         result.forEach(System.out::println);
         System.out.println("bài 13");
         result1.forEach(System.out::println);
+        System.out.println("bài 14");
+        System.out.println(sum);
+        System.out.println("bài 15");
+        System.out.println(result2);
+        System.out.println("bài 16");
+        result3.forEach(System.out::println);
     }
 }

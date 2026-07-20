@@ -1,8 +1,14 @@
 ### IntelliJ IDEA ###
+.idea/
+*.iml
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 .kotlin
+
+### Maven ###
+target/
+!.mvn/wrapper/maven-wrapper.jar
 
 ### Eclipse ###
 .apt_generated
@@ -28,3 +34,9 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Logs ###
+*.log
+
+### OS ###
+Thumbs.db

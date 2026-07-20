@@ -1,12 +1,18 @@
 package org.example.shopping.service;
 
-import org.example.shopping.entity.Product;
+import org.example.shopping.entity.Products;
 
 import java.util.List;
 
 public interface ProductService {
 
-    Product save(Product product);
+    List<Products> findAll();
 
-    List<Product> findAll();
+    Products findById(Integer id);
+
+    void save(Products products);
+
+    void update(Integer id, Products products);
+
+    void delete(Integer id);
 }

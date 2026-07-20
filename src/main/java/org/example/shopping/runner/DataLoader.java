@@ -1,6 +1,5 @@
 package org.example.shopping.runner;
 
-import org.example.shopping.entity.Product;
 import org.example.shopping.repository.ProductRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;

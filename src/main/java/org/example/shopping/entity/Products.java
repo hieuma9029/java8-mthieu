@@ -3,21 +3,24 @@ package org.example.shopping.entity;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "product")
-public class Product {
+@Table(name = "products")
+public class Products {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(length = 100, nullable = false)
+    @Column(length = 20)
+    private String code;
+
+    @Lob
+    private byte[] image;
+
+    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)
     private Double price;
-
-    @Column(length = 500)
-    private String description;
 
     public Integer getId() {
         return id;
@@ -25,6 +28,22 @@ public class Product {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public byte[] getImage() {
+        return image;
+    }
+
+    public void setImage(byte[] image) {
+        this.image = image;
     }
 
     public String getName() {
@@ -41,13 +60,5 @@ public class Product {
 
     public void setPrice(Double price) {
         this.price = price;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 }

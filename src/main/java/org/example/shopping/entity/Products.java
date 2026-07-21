@@ -1,27 +1,38 @@
 package org.example.shopping.entity;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 @Entity
 @Table(name = "products")
+/** Entity ánh xạ bảng products, chứa thông tin sản phẩm. */
 public class Products {
 
+    /** Khóa chính tự tăng. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @NotBlank(message = "Code không được để trống")
     @Column(length = 20)
     private String code;
 
+    /** Dữ liệu ảnh dạng nhị phân lớn (BLOB). */
     @Lob
     private byte[] image;
 
+    @NotBlank(message = "Tên sản phẩm không được để trống")
     @Column(nullable = false)
     private String name;
 
+    @NotNull(message = "Giá không được để trống")
+    @Positive(message = "Giá phải lớn hơn 0")
     @Column(nullable = false)
     private Double price;
 
+    /** Các getter/setter bên dưới cung cấp quyền đọc/ghi dữ liệu sản phẩm. */
     public Integer getId() {
         return id;
     }

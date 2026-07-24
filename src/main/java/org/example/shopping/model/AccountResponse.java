@@ -1,10 +1,8 @@
 package org.example.shopping.model;
-
 /**
  * DTO dùng để trả dữ liệu tài khoản cho client.
  */
 public class AccountResponse {
-
     private Integer id;
 
     private String userName;
@@ -13,6 +11,11 @@ public class AccountResponse {
 
     private Boolean active;
 
+    /**
+     * Các getter/setter bên dưới lần lượt đọc hoặc gán id, userName, userRole
+     * và active của DTO phản hồi. Tham số của mỗi setter là giá trị mới cho
+     * thuộc tính có cùng tên.
+     */
     public Integer getId() {
         return id;
     }

@@ -6,7 +6,6 @@ import javax.validation.constraints.NotBlank;
  * DTO dùng để nhận dữ liệu tài khoản từ client.
  */
 public class AccountRequest {
-
     @NotBlank(message = "Tên đăng nhập không được để trống")
     private String userName;
 
@@ -16,6 +15,11 @@ public class AccountRequest {
     @NotBlank(message = "Vai trò không được để trống")
     private String userRole;
 
+    /**
+     * Các getter/setter bên dưới lần lượt đọc hoặc gán các trường userName,
+     * password và userRole của yêu cầu tạo/cập nhật tài khoản. Tham số của
+     * mỗi setter là giá trị mới cho thuộc tính có cùng tên.
+     */
     public String getUserName() {
         return userName;
     }

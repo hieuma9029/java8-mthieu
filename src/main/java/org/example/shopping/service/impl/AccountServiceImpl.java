@@ -5,61 +5,34 @@ import org.example.shopping.repository.AccountRepository;
 import org.example.shopping.service.AccountService;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 /** Hiện thực AccountService, điều phối CRUD tài khoản qua AccountRepository. */
-public class AccountServiceImpl implements AccountService {
+public class AccountServiceImpl extends BaseServiceImpl<Accounts, Integer, AccountRepository> implements AccountService {
 
-    private final AccountRepository accountRepository;
-
-    /** Inject lớp truy cập database tài khoản. */
+    /**
+     * Khởi tạo service với repository truy cập dữ liệu tài khoản.
+     *
+     * @param accountRepository repository dùng cho các thao tác tài khoản
+     */
     public AccountServiceImpl(AccountRepository accountRepository) {
-        this.accountRepository = accountRepository;
+        super(accountRepository);
     }
 
     @Override
-    /** Đọc toàn bộ tài khoản từ database. */
-    public List<Accounts> findAll() {
-        return accountRepository.findAll();
+    /**
+     * Sao chép dữ liệu cập nhật từ đối tượng nguồn vào tài khoản hiện có.
+     *
+     * @param existing tài khoản hiện có trong database
+     * @param source   tài khoản chứa dữ liệu mới từ client
+     */
+    protected void copyForUpdate(Accounts existing, Accounts source) {
+        existing.setUserName(source.getUserName());
+        existing.setEncryptedPassword(source.getEncryptedPassword());
+        existing.setUserRole(source.getUserRole());
+        existing.setActive(source.getActive());
+        existing.setIsDelete(source.getIsDelete());
+        existing.setDeletedAt(source.getDeletedAt());
+        existing.setCreatedAt(source.getCreatedAt());
+        existing.setUpdatedAt(source.getUpdatedAt());
     }
-
-    @Override
-    /** Tìm tài khoản; trả về null nếu không tồn tại. */
-    public Accounts findById(Integer id) {
-        return accountRepository.findById(id).orElse(null);
-    }
-
-    @Override
-    /** Lưu tài khoản mới hoặc entity đã có id. */
-    public void save(Accounts accounts) {
-        accountRepository.save(accounts);
-    }
-
-    @Override
-    /** Tìm bản ghi cũ, sao chép các trường từ request rồi lưu lại. */
-    public void update(Integer id, Accounts accounts) {
-
-        Accounts oldAccount = accountRepository.findById(id).orElse(null);
-
-        if (oldAccount != null) {
-
-            oldAccount.setUserName(accounts.getUserName());
-            oldAccount.setEncryptedPassword(accounts.getEncryptedPassword());
-            oldAccount.setUserRole(accounts.getUserRole());
-            oldAccount.setActive(accounts.getActive());
-            oldAccount.setIsDelete(accounts.getIsDelete());
-            oldAccount.setDeletedAt(accounts.getDeletedAt());
-            oldAccount.setCreatedAt(accounts.getCreatedAt());
-            oldAccount.setUpdatedAt(accounts.getUpdatedAt());
-
-            accountRepository.save(oldAccount);
-        }
-    }
-
-    @Override
-    /** Xóa cứng tài khoản khỏi database theo id. */
-    public void delete(Integer id) {
-        accountRepository.deleteById(id);
-    }
-}
+} 

@@ -1,24 +1,15 @@
 package org.example.shopping.service;
 
 import org.example.shopping.entity.Orders;
+import org.example.shopping.model.CheckoutRequest;
+import org.example.shopping.model.OrderDetailsResponse;
 
-import java.util.List;
+/** Service cho các nghiệp vụ đặc thù của đơn hàng. */
+public interface OrderService extends BaseService<Orders, Integer> {
 
-/** Hợp đồng nghiệp vụ CRUD dành cho đơn hàng. */
-public interface OrderService {
+    /** Tạo đơn hàng và các dòng chi tiết từ dữ liệu giỏ hàng. */
+    Orders checkout(CheckoutRequest request);
 
-    /** Lấy tất cả đơn hàng. */
-    List<Orders> findAll();
-
-    /** Tìm đơn hàng theo id. */
-    Orders findById(Integer id);
-
-    /** Lưu đơn hàng mới. */
-    void save(Orders orders);
-
-    /** Cập nhật đơn hàng theo id. */
-    void update(Integer id, Orders orders);
-
-    /** Xóa đơn hàng theo id. */
-    void delete(Integer id);
+    /** Lấy các sản phẩm đã chốt trong một đơn hàng. */
+    OrderDetailsResponse getOrderDetails(Integer orderId);
 }

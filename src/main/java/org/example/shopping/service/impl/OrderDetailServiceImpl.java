@@ -5,62 +5,35 @@ import org.example.shopping.repository.OrderDetailRepository;
 import org.example.shopping.service.OrderDetailService;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 /** Hiện thực CRUD các dòng chi tiết đơn hàng bằng OrderDetailRepository. */
-public class OrderDetailServiceImpl implements OrderDetailService {
+public class OrderDetailServiceImpl extends BaseServiceImpl<OrderDetails, Integer, OrderDetailRepository> implements OrderDetailService {
 
-    private final OrderDetailRepository orderDetailRepository;
-
-    /** Inject lớp truy cập database chi tiết đơn. */
+    /**
+     * Khởi tạo service với repository truy cập dữ liệu chi tiết đơn.
+     *
+     * @param orderDetailRepository repository dùng cho các thao tác chi tiết đơn
+     */
     public OrderDetailServiceImpl(OrderDetailRepository orderDetailRepository) {
-        this.orderDetailRepository = orderDetailRepository;
+        super(orderDetailRepository);
     }
 
     @Override
-    /** Đọc tất cả dòng chi tiết đơn. */
-    public List<OrderDetails> findAll() {
-        return orderDetailRepository.findAll();
+    /**
+     * Sao chép dữ liệu cập nhật từ đối tượng nguồn vào chi tiết đơn hàng hiện có.
+     *
+     * @param existing chi tiết đơn hàng hiện có trong database
+     * @param source   chi tiết đơn hàng chứa dữ liệu mới từ client
+     */
+    protected void copyForUpdate(OrderDetails existing, OrderDetails source) {
+        existing.setAmount(source.getAmount());
+        existing.setPrice(source.getPrice());
+        existing.setQuantity(source.getQuantity());
+        existing.setOrders(source.getOrders());
+        existing.setProducts(source.getProducts());
+        existing.setIsDelete(source.getIsDelete());
+        existing.setDeletedAt(source.getDeletedAt());
+        existing.setCreatedAt(source.getCreatedAt());
+        existing.setUpdatedAt(source.getUpdatedAt());
     }
-
-    @Override
-    /** Tìm chi tiết đơn; trả về null nếu không tồn tại. */
-    public OrderDetails findById(Integer id) {
-        return orderDetailRepository.findById(id).orElse(null);
-    }
-
-    @Override
-    /** Lưu một dòng chi tiết mới hoặc đã tồn tại. */
-    public void save(OrderDetails orderDetails) {
-        orderDetailRepository.save(orderDetails);
-    }
-
-    @Override
-    /** Cập nhật các trường và quan hệ order/product nếu bản ghi tồn tại. */
-    public void update(Integer id, OrderDetails orderDetails) {
-
-        OrderDetails oldDetail = orderDetailRepository.findById(id).orElse(null);
-
-        if (oldDetail != null) {
-
-            oldDetail.setAmount(orderDetails.getAmount());
-            oldDetail.setPrice(orderDetails.getPrice());
-            oldDetail.setQuantity(orderDetails.getQuantity());
-            oldDetail.setOrders(orderDetails.getOrders());
-            oldDetail.setProducts(orderDetails.getProducts());
-            oldDetail.setIsDelete(orderDetails.getIsDelete());
-            oldDetail.setDeletedAt(orderDetails.getDeletedAt());
-            oldDetail.setCreatedAt(orderDetails.getCreatedAt());
-            oldDetail.setUpdatedAt(orderDetails.getUpdatedAt());
-
-            orderDetailRepository.save(oldDetail);
-        }
-    }
-
-    @Override
-    /** Xóa cứng chi tiết đơn theo id. */
-    public void delete(Integer id) {
-        orderDetailRepository.deleteById(id);
-    }
-}
+} 

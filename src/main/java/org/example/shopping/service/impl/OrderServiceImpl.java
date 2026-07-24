@@ -1,68 +1,167 @@
 package org.example.shopping.service.impl;
 
+import org.example.shopping.entity.OrderDetails;
 import org.example.shopping.entity.Orders;
+import org.example.shopping.entity.Products;
+import org.example.shopping.entity.CartItems;
+import org.example.shopping.entity.Carts;
+import org.example.shopping.model.CheckoutRequest;
+import org.example.shopping.model.OrderDetailsResponse;
+import org.example.shopping.model.OrderItemResponse;
+import org.example.shopping.repository.CartItemRepository;
+import org.example.shopping.repository.OrderDetailRepository;
 import org.example.shopping.repository.OrderRepository;
+import org.example.shopping.repository.ProductRepository;
 import org.example.shopping.service.OrderService;
+import org.example.shopping.service.CartService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
 /** Hiện thực CRUD đơn hàng bằng OrderRepository. */
-public class OrderServiceImpl implements OrderService {
+public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepository> implements OrderService {
 
-    private final OrderRepository orderRepository;
+    /** Dùng để lấy giá thật và trạng thái xóa mềm của sản phẩm khi checkout. */
+    private final ProductRepository productRepository;
+    /** Lưu các dòng hàng đã được chốt vào đơn. */
+    private final OrderDetailRepository orderDetailRepository;
+    /** Cung cấp giỏ hàng của tài khoản đang checkout. */
+    private final CartService cartService;
+    /** Đọc và xóa các dòng giỏ sau khi tạo đơn thành công. */
+    private final CartItemRepository cartItemRepository;
 
-    /** Inject lớp truy cập database đơn hàng. */
-    public OrderServiceImpl(OrderRepository orderRepository) {
-        this.orderRepository = orderRepository;
+    /**
+     * Khởi tạo service với repository truy cập dữ liệu đơn hàng.
+     *
+     * @param orderRepository repository dùng cho các thao tác đơn hàng
+     */
+    public OrderServiceImpl(OrderRepository orderRepository,
+                            ProductRepository productRepository,
+                            OrderDetailRepository orderDetailRepository,
+                            CartService cartService,
+                            CartItemRepository cartItemRepository) {
+        super(orderRepository);
+        this.productRepository = productRepository;
+        this.orderDetailRepository = orderDetailRepository;
+        this.cartService = cartService;
+        this.cartItemRepository = cartItemRepository;
     }
 
     @Override
-    /** Đọc toàn bộ đơn hàng. */
-    public List<Orders> findAll() {
-        return orderRepository.findAll();
-    }
+    @Transactional
+    /**
+     * Chuyển giỏ hàng hiện tại thành một đơn hàng trong cùng transaction:
+     * tính giá từ database, lưu order_details và chỉ sau đó mới xóa giỏ.
+     */
+    public Orders checkout(CheckoutRequest request) {
+        Orders order = new Orders();
+        order.setCustomerName(request.getCustomerName());
+        order.setCustomerEmail(request.getCustomerEmail());
+        order.setCustomerPhone(request.getCustomerPhone());
+        order.setCustomerAddress(request.getCustomerAddress());
+        order.setOrderDate(LocalDateTime.now());
+        order.setCreatedAt(LocalDateTime.now());
+        order.setIsDelete(false);
 
-    @Override
-    /** Tìm đơn hàng; trả về null nếu không tìm thấy. */
-    public Orders findById(Integer id) {
-        return orderRepository.findById(id).orElse(null);
-    }
-
-    @Override
-    /** Lưu đơn hàng mới hoặc entity có sẵn id. */
-    public void save(Orders orders) {
-        orderRepository.save(orders);
-    }
-
-    @Override
-    /** Cập nhật bản ghi cũ nếu id tồn tại, sau đó lưu thay đổi. */
-    public void update(Integer id, Orders orders) {
-
-        Orders oldOrder = orderRepository.findById(id).orElse(null);
-
-        if (oldOrder != null) {
-
-            oldOrder.setOrderNum(orders.getOrderNum());
-            oldOrder.setAmount(orders.getAmount());
-            oldOrder.setCustomerName(orders.getCustomerName());
-            oldOrder.setCustomerEmail(orders.getCustomerEmail());
-            oldOrder.setCustomerPhone(orders.getCustomerPhone());
-            oldOrder.setCustomerAddress(orders.getCustomerAddress());
-            oldOrder.setOrderDate(orders.getOrderDate());
-            oldOrder.setIsDelete(orders.getIsDelete());
-            oldOrder.setDeletedAt(orders.getDeletedAt());
-            oldOrder.setCreatedAt(orders.getCreatedAt());
-            oldOrder.setUpdatedAt(orders.getUpdatedAt());
-
-            orderRepository.save(oldOrder);
+        Carts cart = cartService.getCurrentCartEntity();
+        if (cart == null) {
+            throw new ResponseStatusException(BAD_REQUEST, "Giỏ hàng trống");
         }
+        java.util.List<CartItems> cartItems = cartItemRepository.findByCart(cart);
+        if (cartItems.isEmpty()) {
+            throw new ResponseStatusException(BAD_REQUEST, "Giỏ hàng trống");
+        }
+
+        double totalAmount = 0;
+        for (CartItems cartItem : cartItems) {
+            Products product = getAvailableProduct(cartItem.getProduct().getId());
+            totalAmount += product.getPrice() * cartItem.getQuantity();
+        }
+        order.setAmount(totalAmount);
+
+        Orders savedOrder = repository.save(order);
+        savedOrder.setOrderNum(savedOrder.getId());
+
+        for (CartItems cartItem : cartItems) {
+            Products product = getAvailableProduct(cartItem.getProduct().getId());
+            OrderDetails detail = new OrderDetails();
+            detail.setOrders(savedOrder);
+            detail.setProducts(product);
+            detail.setQuantity(cartItem.getQuantity());
+            detail.setPrice(product.getPrice());
+            detail.setAmount(product.getPrice() * cartItem.getQuantity());
+            detail.setCreatedAt(LocalDateTime.now());
+            detail.setIsDelete(false);
+            orderDetailRepository.save(detail);
+        }
+        cartItemRepository.deleteAll(cartItems);
+
+        return savedOrder;
     }
 
     @Override
-    /** Xóa cứng đơn hàng theo id. */
-    public void delete(Integer id) {
-        orderRepository.deleteById(id);
+    @Transactional(readOnly = true)
+    /** Trả về các dòng hàng đã chốt để trang Order Detail hiển thị như giỏ hàng. */
+    public OrderDetailsResponse getOrderDetails(Integer orderId) {
+        Orders order = repository.findById(orderId).orElseThrow(() ->
+                new ResponseStatusException(NOT_FOUND, "Không tìm thấy đơn hàng có id = " + orderId));
+
+        List<OrderItemResponse> items = new ArrayList<>();
+        for (OrderDetails detail : orderDetailRepository.findByOrders(order)) {
+            Products product = detail.getProducts();
+            OrderItemResponse item = new OrderItemResponse();
+            item.setProductId(product.getId());
+            item.setCode(product.getCode());
+            item.setName(product.getName());
+            item.setImage(product.getImage());
+            item.setPrice(detail.getPrice());
+            item.setQuantity(detail.getQuantity());
+            item.setSubtotal(detail.getAmount());
+            items.add(item);
+        }
+
+        OrderDetailsResponse response = new OrderDetailsResponse();
+        response.setItems(items);
+        response.setTotalAmount(order.getAmount());
+        return response;
     }
-}
+
+    /** Kiểm tra sản phẩm tồn tại và chưa bị xóa mềm trước khi chốt đơn. */
+    private Products getAvailableProduct(Integer productId) {
+        Products product = productRepository.findById(productId).orElse(null);
+        if (product == null || Boolean.TRUE.equals(product.getIsDelete())) {
+            throw new ResponseStatusException(NOT_FOUND,
+                    "Không tìm thấy sản phẩm có id = " + productId);
+        }
+        return product;
+    }
+
+    @Override
+    /**
+     * Sao chép dữ liệu cập nhật từ đối tượng nguồn vào đơn hàng hiện có.
+     *
+     * @param existing đơn hàng hiện có trong database
+     * @param source   đơn hàng chứa dữ liệu mới từ client
+     */
+    protected void copyForUpdate(Orders existing, Orders source) {
+        existing.setOrderNum(source.getOrderNum());
+        existing.setAmount(source.getAmount());
+        existing.setCustomerName(source.getCustomerName());
+        existing.setCustomerEmail(source.getCustomerEmail());
+        existing.setCustomerPhone(source.getCustomerPhone());
+        existing.setCustomerAddress(source.getCustomerAddress());
+        existing.setOrderDate(source.getOrderDate());
+        existing.setIsDelete(source.getIsDelete());
+        existing.setDeletedAt(source.getDeletedAt());
+        existing.setCreatedAt(source.getCreatedAt());
+        existing.setUpdatedAt(source.getUpdatedAt());
+    }
+} 

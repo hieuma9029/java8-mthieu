@@ -1,13 +1,11 @@
 package org.example.shopping.entity;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "order_details")
 /* Entity đại diện một dòng hàng trong đơn: sản phẩm, số lượng và giá tại lúc mua. */
-public class OrderDetails {
-
+public class OrderDetails extends BaseEntity {
     /** Khóa chính tự tăng của dòng chi tiết. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,18 +31,6 @@ public class OrderDetails {
     private Products products;
 
     /** Các trường xóa mềm và lịch sử tạo/cập nhật. */
-    @Column(name = "is_delete")
-    private Boolean isDelete;
-
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
     /** Các getter/setter bên dưới đọc hoặc cập nhật các thuộc tính chi tiết đơn. */
     public Integer getId() {
         return id;
@@ -94,35 +80,4 @@ public class OrderDetails {
         this.products = products;
     }
 
-    public Boolean getIsDelete() {
-        return isDelete;
-    }
-
-    public void setIsDelete(Boolean isDelete) {
-        this.isDelete = isDelete;
-    }
-
-    public LocalDateTime getDeletedAt() {
-        return deletedAt;
-    }
-
-    public void setDeletedAt(LocalDateTime deletedAt) {
-        this.deletedAt = deletedAt;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 }

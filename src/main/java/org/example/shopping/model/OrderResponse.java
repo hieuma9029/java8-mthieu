@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
  * DTO dùng để trả dữ liệu đơn hàng.
  */
 public class OrderResponse {
-
     private Integer id;
 
     private Integer orderNum;
@@ -17,6 +16,11 @@ public class OrderResponse {
 
     private LocalDateTime orderDate;
 
+    /**
+     * Các getter/setter bên dưới lần lượt đọc hoặc gán dữ liệu đơn hàng trong
+     * DTO phản hồi. Tham số của mỗi setter là giá trị mới cho thuộc tính có
+     * cùng tên.
+     */
     public Integer getId() {
         return id;
     }

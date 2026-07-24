@@ -8,9 +8,8 @@ import javax.validation.constraints.Positive;
 @Entity
 @Table(name = "products")
 /** Entity ánh xạ bảng products, chứa thông tin sản phẩm. */
-public class Products {
+public class Products extends BaseEntity {
 
-    /** Khóa chính tự tăng. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -19,7 +18,6 @@ public class Products {
     @Column(length = 20)
     private String code;
 
-    /** Dữ liệu ảnh dạng nhị phân lớn (BLOB). */
     @Lob
     private byte[] image;
 
@@ -32,7 +30,6 @@ public class Products {
     @Column(nullable = false)
     private Double price;
 
-    /** Các getter/setter bên dưới cung cấp quyền đọc/ghi dữ liệu sản phẩm. */
     public Integer getId() {
         return id;
     }

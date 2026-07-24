@@ -1,10 +1,8 @@
 package org.example.shopping.model;
-
 /**
  * DTO dùng để trả dữ liệu sản phẩm cho client.
  */
 public class ProductResponse {
-
     private Integer id;
 
     private String code;
@@ -13,6 +11,11 @@ public class ProductResponse {
 
     private Double price;
 
+    /**
+     * Các getter/setter bên dưới lần lượt đọc hoặc gán id, code, name và price
+     * của DTO phản hồi. Tham số của mỗi setter là giá trị mới cho thuộc tính có
+     * cùng tên.
+     */
     public Integer getId() {
         return id;
     }

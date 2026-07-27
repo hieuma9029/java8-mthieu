@@ -8,17 +8,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 import javax.servlet.http.HttpServletResponse;
-import java.util.Arrays;
-import java.util.Collections;
 
 /** Cấu hình xác thực và phân quyền HTTP cho ứng dụng. */
 @Configuration
@@ -36,28 +29,18 @@ public class SecurityConfig {
     }
 
     /**
-     * Tạo bộ mã hóa BCrypt dùng để lưu và đối chiếu mật khẩu.
-     *
-     * @return bean mã hóa mật khẩu
-     */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    /**
      * Tạo provider xác thực bằng dữ liệu người dùng trong cơ sở dữ liệu.
      *
      * @return provider đã gắn dịch vụ người dùng và bộ mã hóa mật khẩu
      */
     @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
+    public DaoAuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
         // Khởi tạo provider chịu trách nhiệm kiểm tra thông tin đăng nhập.
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         // Chỉ định service dùng để tìm người dùng theo username.
         provider.setUserDetailsService(userDetailsService);
         // Chỉ định thuật toán mã hóa dùng để đối chiếu mật khẩu.
-        provider.setPasswordEncoder(passwordEncoder());
+        provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
 
@@ -83,7 +66,8 @@ public class SecurityConfig {
      * @throws Exception nếu không thể xây dựng chuỗi bộ lọc
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   DaoAuthenticationProvider authenticationProvider)
             throws Exception {
         http
                 .cors().and()
@@ -91,7 +75,7 @@ public class SecurityConfig {
                 // Frontend đọc cookie XSRF-TOKEN và gửi lại qua header X-XSRF-TOKEN.
                 .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and()
                 // Đăng ký provider xác thực đã cấu hình ở trên.
-                .authenticationProvider(authenticationProvider())
+                .authenticationProvider(authenticationProvider)
                 // Tắt form login để sử dụng API JSON.
                 .formLogin().disable()
                 .logout().disable()
@@ -113,20 +97,4 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * Cấu hình CORS cho frontend React chạy tại localhost:3000.
-     *
-     * @return nguồn cấu hình CORS cho Spring Security
-     */
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type", "X-XSRF-TOKEN"));
-        configuration.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
-} 
+}

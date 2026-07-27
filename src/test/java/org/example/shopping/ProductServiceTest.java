@@ -24,8 +24,8 @@ class ProductServiceTest {
     @Test
     void shouldSoftDeleteProduct() {
         Products product = new Products();
-        product.setCode("SP999");
-        product.setName("Test Product");
+        product.setCode("SP999" + System.nanoTime());
+        product.setName("Test Product " + System.nanoTime());
         product.setPrice(BigDecimal.TEN);
         product.setQuantity(10);
         product.setIsDelete(false);

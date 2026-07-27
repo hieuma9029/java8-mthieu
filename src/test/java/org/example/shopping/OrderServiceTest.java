@@ -24,7 +24,7 @@ class OrderServiceTest {
     @Test
     void shouldUpdateOrderStatus() {
         Orders order = new Orders();
-        order.setCustomerName("Test Customer");
+        order.setCustomerName("Test Customer " + System.nanoTime());
         order.setStatus(OrderStatus.PENDING);
         order.setIsDelete(false);
         Orders savedOrder = orderRepository.save(order);

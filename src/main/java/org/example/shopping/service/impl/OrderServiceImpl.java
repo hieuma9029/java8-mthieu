@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,10 +81,10 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
             throw new ResponseStatusException(BAD_REQUEST, "Giỏ hàng trống");
         }
 
-        double totalAmount = 0;
+        BigDecimal totalAmount = BigDecimal.ZERO;
         for (CartItems cartItem : cartItems) {
             Products product = getAvailableProduct(cartItem.getProduct().getId());
-            totalAmount += product.getPrice() * cartItem.getQuantity();
+            totalAmount = totalAmount.add(product.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
         }
         order.setAmount(totalAmount);
 
@@ -97,7 +98,7 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
             detail.setProducts(product);
             detail.setQuantity(cartItem.getQuantity());
             detail.setPrice(product.getPrice());
-            detail.setAmount(product.getPrice() * cartItem.getQuantity());
+            detail.setAmount(product.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
             detail.setCreatedAt(LocalDateTime.now());
             detail.setIsDelete(false);
             orderDetailRepository.save(detail);
@@ -105,6 +106,18 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
         cartItemRepository.deleteAll(cartItems);
 
         return savedOrder;
+    }
+
+    @Override
+    public void delete(Integer id) {
+        Orders order = repository.findById(id).orElse(null);
+        if (order != null) {
+            java.util.List<OrderDetails> orderDetails = orderDetailRepository.findByOrders(order);
+            if (!orderDetails.isEmpty()) {
+                orderDetailRepository.deleteAll(orderDetails);
+            }
+            repository.delete(order);
+        }
     }
 
     @Override

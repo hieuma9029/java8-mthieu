@@ -1,6 +1,7 @@
 package org.example.shopping.entity;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "order_details")
@@ -11,11 +12,11 @@ public class OrderDetails extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column
-    private Double amount;
+    @Column(precision = 19, scale = 2)
+    private BigDecimal amount;
 
-    @Column
-    private Double price;
+    @Column(precision = 19, scale = 2)
+    private BigDecimal price;
 
     @Column
     private Integer quantity;
@@ -40,19 +41,19 @@ public class OrderDetails extends BaseEntity {
         this.id = id;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 
-    public Double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(Double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 

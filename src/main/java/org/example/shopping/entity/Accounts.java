@@ -1,4 +1,5 @@
     package org.example.shopping.entity;
+    import com.fasterxml.jackson.annotation.JsonIgnore;
     import org.springframework.security.core.GrantedAuthority;
     import org.springframework.security.core.authority.SimpleGrantedAuthority;
     import org.springframework.security.core.userdetails.UserDetails;
@@ -6,7 +7,7 @@
     import java.util.Collection;
     import java.util.Collections;
     @Entity
-    @Table(name = "accounts")
+    @Table(name = "accounts", uniqueConstraints = @UniqueConstraint(columnNames = "user_name"))
     /**
      * Entity ánh xạ bảng accounts và là thông tin người dùng cho Spring Security.
      * UserDetails cho phép Spring Security lấy username, password, trạng thái và quyền.
@@ -18,7 +19,7 @@
         private Integer id;
 
         /** Tên người dùng dùng để đăng nhập. */
-        @Column(name = "user_name")
+        @Column(name = "user_name", nullable = false)
         private String userName;
 
         /** Mật khẩu đã được mã hóa, không lưu mật khẩu gốc. */
@@ -68,6 +69,7 @@
             this.userName = userName;
         }
 
+        @JsonIgnore
         public String getEncryptedPassword() {
             return encryptedPassword;
         }
@@ -94,6 +96,7 @@
 
         @Override
         /** Chuyển userRole thành quyền mà Spring Security dùng khi phân quyền. */
+        @JsonIgnore
         public Collection<? extends GrantedAuthority> getAuthorities() {
             String roleAuthority = userRole;
             if (roleAuthority != null && !roleAuthority.startsWith("ROLE_")) {
@@ -138,6 +141,7 @@
 
         @Override
         /** Trả về mật khẩu mã hóa để Spring Security đối chiếu khi đăng nhập. */
+        @JsonIgnore
         public String getPassword() {
             return encryptedPassword;
         }

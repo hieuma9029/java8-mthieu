@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -143,7 +144,7 @@ public class CartServiceImpl implements CartService {
                 || "anonymousUser".equals(authentication.getPrincipal())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Chưa đăng nhập");
         }
-        Accounts account = accountRepository.findByUserName(authentication.getName());
+        Accounts account = accountRepository.findByUserNameAndIsDeleteFalse(authentication.getName());
         if (account == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Tài khoản không tồn tại");
         }
@@ -162,10 +163,10 @@ public class CartServiceImpl implements CartService {
     /** Chuyển entity giỏ hàng sang DTO, đồng thời tính subtotal và tổng tiền cho frontend. */
     private CartResponse toResponse(List<CartItems> cartItems) {
         List<CartItemResponse> items = new ArrayList<>();
-        double totalAmount = 0;
+        BigDecimal totalAmount = BigDecimal.ZERO;
         for (CartItems cartItem : cartItems) {
             Products product = cartItem.getProduct();
-            double subtotal = product.getPrice() * cartItem.getQuantity();
+            BigDecimal subtotal = product.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()));
             CartItemResponse item = new CartItemResponse();
             item.setProductId(product.getId());
             item.setCode(product.getCode());
@@ -174,7 +175,7 @@ public class CartServiceImpl implements CartService {
             item.setQuantity(cartItem.getQuantity());
             item.setSubtotal(subtotal);
             items.add(item);
-            totalAmount += subtotal;
+            totalAmount = totalAmount.add(subtotal);
         }
         CartResponse response = new CartResponse();
         response.setItems(items);

@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -86,8 +87,9 @@ public class SecurityConfig {
             throws Exception {
         http
                 .cors().and()
-                // Tắt CSRF vì frontend gọi API JSON và đang dùng CORS + cookie.
-                .csrf().disable()
+                // Dùng CSRF token vì xác thực được lưu trong session cookie.
+                // Frontend đọc cookie XSRF-TOKEN và gửi lại qua header X-XSRF-TOKEN.
+                .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and()
                 // Đăng ký provider xác thực đã cấu hình ở trên.
                 .authenticationProvider(authenticationProvider())
                 // Tắt form login để sử dụng API JSON.
@@ -95,8 +97,9 @@ public class SecurityConfig {
                 .logout().disable()
                 // Khai báo quyền truy cập cho từng nhóm đường dẫn.
                 .authorizeHttpRequests(authorize -> authorize
-                        .antMatchers("/auth/login", "/auth/logout").permitAll()
+                        .antMatchers("/auth/login", "/auth/logout", "/auth/csrf").permitAll()
                         .antMatchers("/auth/me", "/auth/profile").authenticated()
+                        .antMatchers("/accounts/**").hasRole("ADMIN")
                         .antMatchers(HttpMethod.GET, "/products/**").permitAll()
                         .antMatchers(HttpMethod.POST, "/products/**").hasRole("ADMIN")
                         .antMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
@@ -120,7 +123,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type", "X-XSRF-TOKEN"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

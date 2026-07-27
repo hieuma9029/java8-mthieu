@@ -5,6 +5,9 @@ import org.example.shopping.repository.AccountRepository;
 import org.example.shopping.service.AccountService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Service
 /** Hiện thực AccountService, điều phối CRUD tài khoản qua AccountRepository. */
 public class AccountServiceImpl extends BaseServiceImpl<Accounts, Integer, AccountRepository> implements AccountService {
@@ -16,6 +19,34 @@ public class AccountServiceImpl extends BaseServiceImpl<Accounts, Integer, Accou
      */
     public AccountServiceImpl(AccountRepository accountRepository) {
         super(accountRepository);
+    }
+
+    @Override
+    public List<Accounts> findAll() {
+        return repository.findByIsDeleteFalse();
+    }
+
+    @Override
+    public Accounts findById(Integer id) {
+        return repository.findByIdAndIsDeleteFalse(id);
+    }
+
+    @Override
+    public void save(Accounts entity) {
+        entity.setIsDelete(false);
+        entity.setCreatedAt(LocalDateTime.now());
+        repository.save(entity);
+    }
+
+    @Override
+    public void delete(Integer id) {
+        Accounts existing = repository.findById(id).orElse(null);
+        if (existing != null && Boolean.FALSE.equals(existing.getIsDelete())) {
+            existing.setIsDelete(true);
+            existing.setDeletedAt(LocalDateTime.now());
+            existing.setActive(false);
+            repository.save(existing);
+        }
     }
 
     @Override

@@ -10,6 +10,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -53,13 +54,25 @@ public class AuthController {
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            Accounts account = accountRepository.findByUserName(request.getUserName());
+            Accounts account = accountRepository.findByUserNameAndIsDeleteFalse(request.getUserName());
             Map<String, Object> result = buildSuccessResponse(account);
             return ResponseEntity.ok(result);
         } catch (BadCredentialsException ex) {
             return ResponseEntity.status(401)
                     .body(buildErrorResponse("Tên đăng nhập hoặc mật khẩu không đúng"));
         }
+    }
+
+    /**
+     * Trả về CSRF token và kích hoạt việc ghi token vào cookie XSRF-TOKEN.
+     * Frontend phải gửi token này trong header X-XSRF-TOKEN khi gọi API thay đổi dữ liệu.
+     *
+     * @param token token do Spring Security tạo cho phiên hiện tại
+     * @return CSRF token dùng cho các request ghi dữ liệu
+     */
+    @GetMapping("/csrf")
+    public CsrfToken csrf(CsrfToken token) {
+        return token;
     }
 
     /**
@@ -71,6 +84,12 @@ public class AuthController {
      */
     @PostMapping("/logout")
     public ResponseEntity<Map<String, Object>> logout(HttpServletRequest request, HttpServletResponse response) {
+        if (request != null) {
+            javax.servlet.http.HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate();
+            }
+        }
         SecurityContextHolder.clearContext();
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
@@ -90,7 +109,7 @@ public class AuthController {
             return ResponseEntity.status(401).body(buildErrorResponse("Chưa đăng nhập"));
         }
 
-        Accounts account = accountRepository.findByUserName(authentication.getName());
+        Accounts account = accountRepository.findByUserNameAndIsDeleteFalse(authentication.getName());
         if (account == null) {
             return ResponseEntity.status(404).body(buildErrorResponse("Không tìm thấy người dùng"));
         }
@@ -111,7 +130,7 @@ public class AuthController {
             return ResponseEntity.status(401).body(buildErrorResponse("Chưa đăng nhập"));
         }
 
-        Accounts account = accountRepository.findByUserName(authentication.getName());
+        Accounts account = accountRepository.findByUserNameAndIsDeleteFalse(authentication.getName());
         if (account == null) {
             return ResponseEntity.status(404).body(buildErrorResponse("Không tìm thấy người dùng"));
         }
@@ -129,7 +148,7 @@ public class AuthController {
             account.setAddress(profileData.get("address").toString());
         }
 
-        accountService.save(account);
+        accountService.update(account.getId(), account);
         return ResponseEntity.ok(buildSuccessResponse(account));
     }
 

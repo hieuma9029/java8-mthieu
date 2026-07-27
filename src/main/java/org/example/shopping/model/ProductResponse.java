@@ -1,4 +1,5 @@
 package org.example.shopping.model;
+import java.math.BigDecimal;
 /**
  * DTO dùng để trả dữ liệu sản phẩm cho client.
  */
@@ -9,7 +10,7 @@ public class ProductResponse {
 
     private String name;
 
-    private Double price;
+    private BigDecimal price;
 
     /**
      * Các getter/setter bên dưới lần lượt đọc hoặc gán id, code, name và price
@@ -40,11 +41,11 @@ public class ProductResponse {
         this.name = name;
     }
 
-    public Double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(Double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 }

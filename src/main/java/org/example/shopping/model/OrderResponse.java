@@ -1,6 +1,7 @@
 package org.example.shopping.model;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 /**
  * DTO dùng để trả dữ liệu đơn hàng.
@@ -12,7 +13,7 @@ public class OrderResponse {
 
     private String customerName;
 
-    private Double amount;
+    private BigDecimal amount;
 
     private LocalDateTime orderDate;
 
@@ -45,11 +46,11 @@ public class OrderResponse {
         this.customerName = customerName;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 

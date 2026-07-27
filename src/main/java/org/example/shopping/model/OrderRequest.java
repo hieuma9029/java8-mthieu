@@ -3,6 +3,7 @@ package org.example.shopping.model;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import java.math.BigDecimal;
 
 /**
  * DTO dùng để nhận dữ liệu đơn hàng.
@@ -23,7 +24,7 @@ public class OrderRequest {
     @NotNull(message = "Tổng tiền không được để trống")
     @Positive(message = "Tổng tiền phải lớn hơn 0")
 
-    private Double amount;
+    private BigDecimal amount;
 
     /**
      * Các getter/setter bên dưới lần lượt đọc hoặc gán thông tin khách hàng
@@ -62,11 +63,11 @@ public class OrderRequest {
         this.customerAddress = customerAddress;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 }

@@ -125,6 +125,7 @@ public class ProductServiceImpl extends BaseServiceImpl<Products, Integer, Produ
         return repository.existsByCode(code);
     }
 
+    /** Kiểm tra tên sản phẩm có đang được một sản phẩm chưa xóa mềm sử dụng hay không. */
     @Override
     public boolean existsByName(String name) {
         return repository.findByIsDeleteFalse().stream()
@@ -132,6 +133,12 @@ public class ProductServiceImpl extends BaseServiceImpl<Products, Integer, Produ
                 .anyMatch(name::equals);
     }
 
+    /**
+     * Tạo mã SP kế tiếp từ mã lớn nhất hiện có và bỏ qua mã đã tồn tại.
+     * Ràng buộc unique tại database vẫn là lớp bảo vệ cuối cùng khi có request đồng thời.
+     *
+     * @return mã sản phẩm dạng SP001, SP002, ... chưa tồn tại tại thời điểm kiểm tra
+     */
     @Override
     public String generateNextCode() {
         int largestNumber = repository.findByIsDeleteFalse().stream()

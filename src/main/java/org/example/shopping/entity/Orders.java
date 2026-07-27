@@ -2,6 +2,7 @@ package org.example.shopping.entity;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "orders")
@@ -16,8 +17,8 @@ public class Orders extends BaseEntity {
     @Column(name = "order_num")
     private Integer orderNum;
 
-    @Column
-    private Double amount;
+    @Column(precision = 19, scale = 2)
+    private BigDecimal amount;
 
     @Column(name = "customer_name")
     private String customerName;
@@ -53,11 +54,11 @@ public class Orders extends BaseEntity {
         this.orderNum = orderNum;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 

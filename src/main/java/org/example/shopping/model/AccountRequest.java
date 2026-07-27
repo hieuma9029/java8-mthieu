@@ -1,6 +1,7 @@
 package org.example.shopping.model;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 
 /**
  * DTO dùng để nhận dữ liệu tài khoản từ client.
@@ -13,6 +14,7 @@ public class AccountRequest {
     private String password;
 
     @NotBlank(message = "Vai trò không được để trống")
+    @Pattern(regexp = "ROLE_(ADMIN|USER)|ADMIN|USER", message = "Role must be ADMIN or USER")
     private String userRole;
 
     /**

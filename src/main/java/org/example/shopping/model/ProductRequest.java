@@ -3,6 +3,7 @@ package org.example.shopping.model;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import java.math.BigDecimal;
 
 /**
  * DTO dùng để nhận dữ liệu từ client khi thêm hoặc sửa sản phẩm.
@@ -16,7 +17,7 @@ public class ProductRequest {
     @NotNull(message = "Giá không được để trống")
     @Positive(message = "Giá phải lớn hơn 0")
 
-    private Double price;
+    private BigDecimal price;
 
     /**
      * Các getter/setter bên dưới lần lượt đọc hoặc gán code, name và price
@@ -39,11 +40,11 @@ public class ProductRequest {
         this.name = name;
     }
 
-    public Double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(Double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 }

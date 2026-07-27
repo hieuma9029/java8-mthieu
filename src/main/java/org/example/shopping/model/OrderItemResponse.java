@@ -1,4 +1,5 @@
 package org.example.shopping.model;
+import java.math.BigDecimal;
 
 /** Một dòng sản phẩm đã được chốt trong đơn hàng. */
 public class OrderItemResponse {
@@ -11,11 +12,11 @@ public class OrderItemResponse {
     /** Ảnh nhị phân; Jackson trả về chuỗi Base64 trong JSON. */
     private byte[] image;
     /** Đơn giá đã được chốt khi checkout. */
-    private Double price;
+    private BigDecimal price;
     /** Số lượng khách đã đặt. */
     private Integer quantity;
     /** Thành tiền đã được chốt của dòng đơn hàng. */
-    private Double subtotal;
+    private BigDecimal subtotal;
 
     public Integer getProductId() { return productId; }
     public void setProductId(Integer productId) { this.productId = productId; }
@@ -25,10 +26,10 @@ public class OrderItemResponse {
     public void setName(String name) { this.name = name; }
     public byte[] getImage() { return image; }
     public void setImage(byte[] image) { this.image = image; }
-    public Double getPrice() { return price; }
-    public void setPrice(Double price) { this.price = price; }
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
     public Integer getQuantity() { return quantity; }
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
-    public Double getSubtotal() { return subtotal; }
-    public void setSubtotal(Double subtotal) { this.subtotal = subtotal; }
+    public BigDecimal getSubtotal() { return subtotal; }
+    public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
 }

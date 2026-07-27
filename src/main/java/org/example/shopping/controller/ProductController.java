@@ -33,7 +33,6 @@ public class ProductController {
     @GetMapping
     /** GET /products: lấy danh sách sản phẩm. */
     public List<ProductResponse> getAllProducts() {
-        System.out.println("===== ĐÃ VÀO PRODUCT CONTROLLER =====");
         return productService.findAll()
                 .stream()
                 .map(this::toResponse)
@@ -138,6 +137,12 @@ public class ProductController {
         if (!existingProduct.getName().equals(request.getName())
                 && productService.existsByName(request.getName())) {
             throw new RuntimeException("Tên sản phẩm đã tồn tại.");
+        }
+
+        if (request.getCode() != null && !request.getCode().trim().isEmpty()
+                && !existingProduct.getCode().equals(request.getCode())
+                && productService.existsByCode(request.getCode())) {
+            throw new RuntimeException("Product code already exists.");
         }
 
         Products product = new Products();

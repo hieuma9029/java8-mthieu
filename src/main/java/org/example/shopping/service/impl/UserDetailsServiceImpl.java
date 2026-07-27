@@ -32,13 +32,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username)
             throws UsernameNotFoundException {
-        // Tìm tài khoản có userName trùng với tên đăng nhập được cung cấp.
-        Accounts account = accountRepository.findByUserName(username);
-        // Dừng quá trình đăng nhập và báo lỗi nếu không tìm thấy tài khoản.
+        // Tìm tài khoản chưa bị xóa mềm theo tên đăng nhập.
+        Accounts account = accountRepository.findByUserNameAndIsDeleteFalse(username);
         if (account == null) {
             throw new UsernameNotFoundException("User not found");
         }
-        // Trả về tài khoản vì Accounts triển khai UserDetails, chứa dữ liệu cho Spring Security xác thực.
         return account;
     }
 }

@@ -1,0 +1,13 @@
+* [33m87af0a6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mweb[m[33m, [m[1;31morigin/web[m[33m)[m chore: update application configuration
+* [33ma42aa1a[m feat: implement checkout and order management
+* [33m2289ad9[m feat: implement shopping cart
+* [33mfc0c453[m feat: implement authentication and account management
+* [33m982a66e[m feat: complete product module
+* [33mf83bd2d[m refactor: add base classes and global exception handling
+* [33m8ca697b[m Done Entity&DAO&Model/DTO
+* [33m47a4708[m Update CRUD
+* [33mde8b671[m New shopping web project
+* [33mdfc3cdb[m[33m ([m[1;31morigin/day1[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mday1[m[33m)[m done date&timeAPI
+* [33m1a5f21a[m done streams
+* [33m9e9f3a9[m done FInterface and DMethod
+* [33m0ef16e2[m first commit

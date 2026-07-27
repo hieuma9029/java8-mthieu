@@ -104,6 +104,9 @@ public class ProductServiceImpl extends BaseServiceImpl<Products, Integer, Produ
         Products product = repository.findById(id).orElse(null);
 
         if (product != null && Boolean.TRUE.equals(product.getIsDelete())) {
+            if (existsByName(product.getName())) {
+                throw new IllegalArgumentException("Tên sản phẩm đã tồn tại.");
+            }
             product.setIsDelete(false);
             product.setDeletedAt(null);
             product.setUpdatedAt(LocalDateTime.now());
@@ -120,6 +123,13 @@ public class ProductServiceImpl extends BaseServiceImpl<Products, Integer, Produ
     @Override
     public boolean existsByCode(String code) {
         return repository.existsByCode(code);
+    }
+
+    @Override
+    public boolean existsByName(String name) {
+        return repository.findByIsDeleteFalse().stream()
+                .map(Products::getName)
+                .anyMatch(name::equals);
     }
 
     @Override

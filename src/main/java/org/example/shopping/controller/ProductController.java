@@ -107,6 +107,10 @@ public class ProductController {
             throw new RuntimeException("Mã sản phẩm đã tồn tại.");
         }
 
+        if (productService.existsByName(request.getName())) {
+            throw new RuntimeException("Tên sản phẩm đã tồn tại.");
+        }
+
         Products product = new Products();
 
         product.setCode(code);
@@ -129,6 +133,11 @@ public class ProductController {
         Products existingProduct = productService.findById(id);
         if (existingProduct == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy sản phẩm");
+        }
+
+        if (!existingProduct.getName().equals(request.getName())
+                && productService.existsByName(request.getName())) {
+            throw new RuntimeException("Tên sản phẩm đã tồn tại.");
         }
 
         Products product = new Products();

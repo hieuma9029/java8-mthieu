@@ -14,6 +14,15 @@ public interface ProductService extends BaseService<Products, Integer> {
     boolean existsByCode(String code);
 
     /**
+     * Kiểm tra tên sản phẩm đã được sử dụng bởi một sản phẩm đang hoạt động hay chưa.
+     * Việc so sánh phân biệt chữ hoa/chữ thường và không tự cắt khoảng trắng.
+     *
+     * @param name tên sản phẩm cần kiểm tra
+     * @return true nếu có tên giống hệt, false nếu chưa có
+     */
+    boolean existsByName(String name);
+
+    /**
      * Khôi phục sản phẩm đã bị xóa mềm.
      *
      * @param id mã định danh sản phẩm

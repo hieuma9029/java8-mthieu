@@ -5,8 +5,11 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
 
+import org.example.shopping.entity.OrderStatus;
+
 /**
- * DTO dùng để nhận dữ liệu đơn hàng.
+ * DTO dùng để nhận dữ liệu đơn hàng từ client khi tạo hoặc cập nhật đơn hàng.
+ * Chứa thông tin khách hàng, tổng tiền và trạng thái đơn hàng.
  */
 public class OrderRequest {
     @NotBlank(message = "Tên khách hàng không được để trống")
@@ -23,8 +26,10 @@ public class OrderRequest {
 
     @NotNull(message = "Tổng tiền không được để trống")
     @Positive(message = "Tổng tiền phải lớn hơn 0")
-
     private BigDecimal amount;
+
+    @NotNull(message = "Trạng thái đơn hàng không được để trống")
+    private OrderStatus status;
 
     /**
      * Các getter/setter bên dưới lần lượt đọc hoặc gán thông tin khách hàng
@@ -69,5 +74,13 @@ public class OrderRequest {
 
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
     }
 }

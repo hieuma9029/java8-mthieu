@@ -4,9 +4,14 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
 
+import org.example.shopping.entity.OrderStatus;
+
 @Entity
 @Table(name = "orders")
-/** Entity ánh xạ bảng orders, lưu thông tin chung của một đơn hàng. */
+/**
+ * Entity ánh xạ bảng orders, lưu thông tin chung của một đơn hàng.
+ * Bao gồm thông tin khách hàng, tổng tiền, thời gian đặt hàng và trạng thái xử lý.
+ */
 public class Orders extends BaseEntity {
     /** Khóa chính tự tăng. */
     @Id
@@ -35,6 +40,11 @@ public class Orders extends BaseEntity {
     /** Thời điểm đặt đơn. */
     @Column(name = "order_date")
     private LocalDateTime orderDate;
+
+    /** Trạng thái hiện tại của đơn hàng, ví dụ: chờ xác nhận, đã giao, đã nhận. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private OrderStatus status;
 
     /** Các trường xóa mềm và lịch sử tạo/cập nhật bản ghi. */
     /** Các getter/setter bên dưới đọc hoặc thay đổi dữ liệu đơn hàng. */
@@ -100,6 +110,14 @@ public class Orders extends BaseEntity {
 
     public void setOrderDate(LocalDateTime orderDate) {
         this.orderDate = orderDate;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
     }
 
 }

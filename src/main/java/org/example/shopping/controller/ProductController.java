@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/products")
-/** API REST quản lý sản phẩm tại /products. */
+/** API REST quản lý sản phẩm tại đường dẫn /products. */
 public class ProductController {
 
     private final ProductService productService;
@@ -115,6 +115,7 @@ public class ProductController {
         product.setCode(code);
         product.setName(request.getName());
         product.setPrice(request.getPrice());
+        product.setQuantity(request.getQuantity());
 
         productService.save(product);
     }
@@ -152,6 +153,7 @@ public class ProductController {
                 : request.getCode());
         product.setName(request.getName());
         product.setPrice(request.getPrice());
+        product.setQuantity(request.getQuantity());
 
         productService.update(id, product);
     }
@@ -190,6 +192,7 @@ public class ProductController {
         response.setCode(product.getCode());
         response.setName(product.getName());
         response.setPrice(product.getPrice());
+        response.setQuantity(product.getQuantity());
 
         return response;
     }

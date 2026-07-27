@@ -1,7 +1,8 @@
 package org.example.shopping.model;
 import java.math.BigDecimal;
 /**
- * DTO dùng để trả dữ liệu sản phẩm cho client.
+ * DTO dùng để trả dữ liệu sản phẩm cho client sau khi truy vấn hoặc thao tác.
+ * Chỉ bao gồm các thông tin cần thiết để frontend hiển thị.
  */
 public class ProductResponse {
     private Integer id;
@@ -11,6 +12,8 @@ public class ProductResponse {
     private String name;
 
     private BigDecimal price;
+
+    private Integer quantity;
 
     /**
      * Các getter/setter bên dưới lần lượt đọc hoặc gán id, code, name và price
@@ -47,5 +50,13 @@ public class ProductResponse {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
     }
 }

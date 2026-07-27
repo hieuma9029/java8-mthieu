@@ -3,6 +3,7 @@ package org.example.shopping.controller;
 import org.example.shopping.entity.Orders;
 import org.example.shopping.model.CheckoutRequest;
 import org.example.shopping.model.OrderDetailsResponse;
+import org.example.shopping.model.OrderStatusRequest;
 import org.example.shopping.service.OrderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -13,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/orders")
-/** API REST quản lý đơn hàng tại /orders. */
+/** API REST quản lý đơn hàng tại đường dẫn /orders. */
 public class OrderController {
     private final OrderService orderService;
 
@@ -70,7 +71,7 @@ public class OrderController {
 
     @PutMapping("/{id}")
     /**
-     * PUT /orders/{id}: cập nhật đơn hàng.
+     * PUT /orders/{id}: cập nhật thông tin đơn hàng.
      *
      * @param id mã đơn hàng cần cập nhật
      * @param orders dữ liệu đơn hàng mới do client gửi
@@ -78,6 +79,19 @@ public class OrderController {
     public void updateOrder(@PathVariable Integer id,
                             @RequestBody Orders orders) {
         orderService.update(id, orders);
+    }
+
+    @PutMapping("/{id}/status")
+    /**
+     * PUT /orders/{id}/status: cập nhật trạng thái đơn hàng.
+     *
+     * @param id mã đơn hàng cần cập nhật
+     * @param request yêu cầu trạng thái mới
+     * @return đơn hàng sau khi đã cập nhật trạng thái
+     */
+    public Orders updateOrderStatus(@PathVariable Integer id,
+                                    @Valid @RequestBody OrderStatusRequest request) {
+        return orderService.updateStatus(id, request);
     }
 
     @DeleteMapping("/{id}")

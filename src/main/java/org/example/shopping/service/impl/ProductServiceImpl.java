@@ -13,7 +13,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
-/** Hiện thực ProductService, thao tác dữ liệu sản phẩm qua ProductRepository. */
+/**
+ * Hiện thực các nghiệp vụ liên quan đến sản phẩm bằng ProductRepository.
+ * Lớp này xử lý đọc, lưu, cập nhật, xóa mềm và kiểm tra dữ liệu sản phẩm.
+ */
 public class ProductServiceImpl extends BaseServiceImpl<Products, Integer, ProductRepository> implements ProductService {
 
     /**
@@ -73,6 +76,7 @@ public class ProductServiceImpl extends BaseServiceImpl<Products, Integer, Produ
             oldProduct.setCode(products.getCode());
             oldProduct.setName(products.getName());
             oldProduct.setPrice(products.getPrice());
+            oldProduct.setQuantity(products.getQuantity());
             oldProduct.setImage(products.getImage());
 
             oldProduct.setUpdatedAt(LocalDateTime.now());

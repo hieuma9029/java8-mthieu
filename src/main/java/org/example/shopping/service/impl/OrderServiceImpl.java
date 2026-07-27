@@ -5,9 +5,11 @@ import org.example.shopping.entity.Orders;
 import org.example.shopping.entity.Products;
 import org.example.shopping.entity.CartItems;
 import org.example.shopping.entity.Carts;
+import org.example.shopping.entity.OrderStatus;
 import org.example.shopping.model.CheckoutRequest;
 import org.example.shopping.model.OrderDetailsResponse;
 import org.example.shopping.model.OrderItemResponse;
+import org.example.shopping.model.OrderStatusRequest;
 import org.example.shopping.repository.CartItemRepository;
 import org.example.shopping.repository.OrderDetailRepository;
 import org.example.shopping.repository.OrderRepository;
@@ -27,7 +29,10 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
-/** Hiện thực CRUD đơn hàng bằng OrderRepository. */
+/**
+ * Hiện thực các nghiệp vụ liên quan đến đơn hàng bằng OrderRepository.
+ * Lớp này xử lý checkout, cập nhật trạng thái, lấy chi tiết đơn và xóa dữ liệu liên quan.
+ */
 public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepository> implements OrderService {
 
     /** Dùng để lấy giá thật và trạng thái xóa mềm của sản phẩm khi checkout. */
@@ -57,6 +62,21 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
     }
 
     @Override
+    /** Gán trạng thái mặc định cho đơn hàng mới khi tạo bằng API thủ công. */
+    public void save(Orders order) {
+        if (order.getStatus() == null) {
+            order.setStatus(OrderStatus.PENDING);
+        }
+        if (order.getCreatedAt() == null) {
+            order.setCreatedAt(LocalDateTime.now());
+        }
+        if (order.getIsDelete() == null) {
+            order.setIsDelete(false);
+        }
+        repository.save(order);
+    }
+
+    @Override
     @Transactional
     /**
      * Chuyển giỏ hàng hiện tại thành một đơn hàng trong cùng transaction:
@@ -69,6 +89,7 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
         order.setCustomerPhone(request.getCustomerPhone());
         order.setCustomerAddress(request.getCustomerAddress());
         order.setOrderDate(LocalDateTime.now());
+        order.setStatus(OrderStatus.PENDING);
         order.setCreatedAt(LocalDateTime.now());
         order.setIsDelete(false);
 
@@ -106,6 +127,18 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
         cartItemRepository.deleteAll(cartItems);
 
         return savedOrder;
+    }
+
+    @Override
+    /** Cập nhật trạng thái đơn hàng theo mã định danh và payload trạng thái mới. */
+    public Orders updateStatus(Integer id, OrderStatusRequest request) {
+        Orders order = repository.findById(id).orElseThrow(() ->
+                new ResponseStatusException(NOT_FOUND, "Không tìm thấy đơn hàng có id = " + id));
+        if (request.getStatus() != null) {
+            order.setStatus(request.getStatus());
+        }
+        order.setUpdatedAt(LocalDateTime.now());
+        return repository.save(order);
     }
 
     @Override
@@ -172,6 +205,9 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
         existing.setCustomerPhone(source.getCustomerPhone());
         existing.setCustomerAddress(source.getCustomerAddress());
         existing.setOrderDate(source.getOrderDate());
+        if (source.getStatus() != null) {
+            existing.setStatus(source.getStatus());
+        }
         existing.setIsDelete(source.getIsDelete());
         existing.setDeletedAt(source.getDeletedAt());
         existing.setCreatedAt(source.getCreatedAt());

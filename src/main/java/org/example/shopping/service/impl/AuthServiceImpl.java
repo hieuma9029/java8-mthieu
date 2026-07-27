@@ -1,0 +1,138 @@
+package org.example.shopping.service.impl;
+
+import org.example.shopping.entity.Accounts;
+import org.example.shopping.model.LoginRequest;
+import org.example.shopping.repository.AccountRepository;
+import org.example.shopping.service.AccountService;
+import org.example.shopping.service.AuthService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Hiện thực các nghiệp vụ xác thực và profile cho người dùng.
+ */
+@Service
+public class AuthServiceImpl implements AuthService {
+
+    private final AuthenticationManager authenticationManager;
+    private final AccountRepository accountRepository;
+    private final AccountService accountService;
+
+    public AuthServiceImpl(AuthenticationManager authenticationManager,
+                           AccountRepository accountRepository,
+                           AccountService accountService) {
+        this.authenticationManager = authenticationManager;
+        this.accountRepository = accountRepository;
+        this.accountService = accountService;
+    }
+
+    @Override
+    public ResponseEntity<Map<String, Object>> login(LoginRequest request) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUserName(), request.getPassword())
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            Accounts account = accountRepository.findByUserNameAndIsDeleteFalse(request.getUserName());
+            return ResponseEntity.ok(buildSuccessResponse(account));
+        } catch (BadCredentialsException ex) {
+            return ResponseEntity.status(401)
+                    .body(buildErrorResponse("Tên đăng nhập hoặc mật khẩu không đúng"));
+        }
+    }
+
+    @Override
+    public ResponseEntity<Map<String, Object>> logout(HttpServletRequest request, HttpServletResponse response) {
+        if (request != null) {
+            javax.servlet.http.HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate();
+            }
+        }
+        SecurityContextHolder.clearContext();
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("message", "Đã đăng xuất");
+        return ResponseEntity.ok(result);
+    }
+
+    @Override
+    public ResponseEntity<Map<String, Object>> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            return ResponseEntity.status(401).body(buildErrorResponse("Chưa đăng nhập"));
+        }
+
+        Accounts account = accountRepository.findByUserNameAndIsDeleteFalse(authentication.getName());
+        if (account == null) {
+            return ResponseEntity.status(404).body(buildErrorResponse("Không tìm thấy người dùng"));
+        }
+
+        return ResponseEntity.ok(buildSuccessResponse(account));
+    }
+
+    @Override
+    public ResponseEntity<Map<String, Object>> updateProfile(Map<String, Object> profileData) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            return ResponseEntity.status(401).body(buildErrorResponse("Chưa đăng nhập"));
+        }
+
+        Accounts account = accountRepository.findByUserNameAndIsDeleteFalse(authentication.getName());
+        if (account == null) {
+            return ResponseEntity.status(404).body(buildErrorResponse("Không tìm thấy người dùng"));
+        }
+
+        if (profileData.containsKey("name")) {
+            account.setName(profileData.get("name").toString());
+        }
+        if (profileData.containsKey("email")) {
+            account.setEmail(profileData.get("email").toString());
+        }
+        if (profileData.containsKey("phone")) {
+            account.setPhone(profileData.get("phone").toString());
+        }
+        if (profileData.containsKey("address")) {
+            account.setAddress(profileData.get("address").toString());
+        }
+
+        accountService.update(account.getId(), account);
+        return ResponseEntity.ok(buildSuccessResponse(account));
+    }
+
+    private Map<String, Object> buildSuccessResponse(Accounts account) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("username", account.getUserName());
+        data.put("role", account.getUserRole() != null && account.getUserRole().startsWith("ROLE_")
+                ? account.getUserRole().substring(5)
+                : account.getUserRole());
+        data.put("name", account.getName());
+        data.put("email", account.getEmail());
+        data.put("phone", account.getPhone());
+        data.put("address", account.getAddress());
+        result.put("data", data);
+        return result;
+    }
+
+    private Map<String, Object> buildErrorResponse(String message) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", false);
+        result.put("message", message);
+        return result;
+    }
+}

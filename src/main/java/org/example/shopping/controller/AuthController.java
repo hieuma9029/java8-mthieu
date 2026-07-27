@@ -1,22 +1,14 @@
 package org.example.shopping.controller;
 
-import org.example.shopping.entity.Accounts;
 import org.example.shopping.model.LoginRequest;
-import org.example.shopping.repository.AccountRepository;
-import org.example.shopping.service.AccountService;
+import org.example.shopping.service.AuthService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -28,16 +20,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-    private final AuthenticationManager authenticationManager;
-    private final AccountRepository accountRepository;
-    private final AccountService accountService;
+    private final AuthService authService;
 
-    public AuthController(AuthenticationManager authenticationManager,
-                          AccountRepository accountRepository,
-                          AccountService accountService) {
-        this.authenticationManager = authenticationManager;
-        this.accountRepository = accountRepository;
-        this.accountService = accountService;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
     /**
@@ -48,19 +34,7 @@ public class AuthController {
      */
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginRequest request) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getUserName(), request.getPassword())
-            );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            Accounts account = accountRepository.findByUserNameAndIsDeleteFalse(request.getUserName());
-            Map<String, Object> result = buildSuccessResponse(account);
-            return ResponseEntity.ok(result);
-        } catch (BadCredentialsException ex) {
-            return ResponseEntity.status(401)
-                    .body(buildErrorResponse("Tên đăng nhập hoặc mật khẩu không đúng"));
-        }
+        return authService.login(request);
     }
 
     /**
@@ -84,17 +58,7 @@ public class AuthController {
      */
     @PostMapping("/logout")
     public ResponseEntity<Map<String, Object>> logout(HttpServletRequest request, HttpServletResponse response) {
-        if (request != null) {
-            javax.servlet.http.HttpSession session = request.getSession(false);
-            if (session != null) {
-                session.invalidate();
-            }
-        }
-        SecurityContextHolder.clearContext();
-        Map<String, Object> result = new HashMap<>();
-        result.put("success", true);
-        result.put("message", "Đã đăng xuất");
-        return ResponseEntity.ok(result);
+        return authService.logout(request, response);
     }
 
     /**
@@ -104,17 +68,7 @@ public class AuthController {
      */
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(401).body(buildErrorResponse("Chưa đăng nhập"));
-        }
-
-        Accounts account = accountRepository.findByUserNameAndIsDeleteFalse(authentication.getName());
-        if (account == null) {
-            return ResponseEntity.status(404).body(buildErrorResponse("Không tìm thấy người dùng"));
-        }
-
-        return ResponseEntity.ok(buildSuccessResponse(account));
+        return authService.getCurrentUser();
     }
 
     /**
@@ -125,65 +79,6 @@ public class AuthController {
      */
     @PutMapping("/profile")
     public ResponseEntity<Map<String, Object>> updateProfile(@RequestBody Map<String, Object> profileData) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(401).body(buildErrorResponse("Chưa đăng nhập"));
-        }
-
-        Accounts account = accountRepository.findByUserNameAndIsDeleteFalse(authentication.getName());
-        if (account == null) {
-            return ResponseEntity.status(404).body(buildErrorResponse("Không tìm thấy người dùng"));
-        }
-
-        if (profileData.containsKey("name")) {
-            account.setName(profileData.get("name").toString());
-        }
-        if (profileData.containsKey("email")) {
-            account.setEmail(profileData.get("email").toString());
-        }
-        if (profileData.containsKey("phone")) {
-            account.setPhone(profileData.get("phone").toString());
-        }
-        if (profileData.containsKey("address")) {
-            account.setAddress(profileData.get("address").toString());
-        }
-
-        accountService.update(account.getId(), account);
-        return ResponseEntity.ok(buildSuccessResponse(account));
-    }
-
-    /**
-     * Tạo một cấu trúc JSON trả về theo format frontend mong muốn.
-     *
-     * @param account thông tin tài khoản cần trả về
-     * @return map chứa success và dữ liệu user
-     */
-    private Map<String, Object> buildSuccessResponse(Accounts account) {
-        Map<String, Object> result = new HashMap<>();
-        result.put("success", true);
-        Map<String, Object> data = new HashMap<>();
-        data.put("username", account.getUserName());
-        data.put("role", account.getUserRole() != null && account.getUserRole().startsWith("ROLE_")
-                ? account.getUserRole().substring(5)
-                : account.getUserRole());
-        data.put("name", account.getName());
-        data.put("email", account.getEmail());
-        data.put("phone", account.getPhone());
-        data.put("address", account.getAddress());
-        result.put("data", data);
-        return result;
-    }
-
-    /**
-     * Tạo response lỗi với thông điệp cụ thể.
-     *
-     * @param message nội dung lỗi
-     * @return map chứa success=false và thông điệp lỗi
-     */
-    private Map<String, Object> buildErrorResponse(String message) {
-        Map<String, Object> result = new HashMap<>();
-        result.put("success", false);
-        result.put("message", message);
-        return result;
+        return authService.updateProfile(profileData);
     }
 }

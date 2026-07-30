@@ -4,8 +4,10 @@
     import org.springframework.security.core.authority.SimpleGrantedAuthority;
     import org.springframework.security.core.userdetails.UserDetails;
     import javax.persistence.*;
+    import java.util.ArrayList;
     import java.util.Collection;
     import java.util.Collections;
+    import java.util.List;
     @Entity
     @Table(name = "accounts", uniqueConstraints = @UniqueConstraint(columnNames = "user_name"))
     /**
@@ -98,13 +100,23 @@
         /** Chuyển userRole thành quyền mà Spring Security dùng khi phân quyền. */
         @JsonIgnore
         public Collection<? extends GrantedAuthority> getAuthorities() {
-            String roleAuthority = userRole;
-            if (roleAuthority != null && !roleAuthority.startsWith("ROLE_")) {
-                roleAuthority = "ROLE_" + roleAuthority;
+            if (userRole == null || userRole.trim().isEmpty()) {
+                return Collections.emptyList();
             }
-            return Collections.singletonList(
-                    new SimpleGrantedAuthority(roleAuthority)
-            );
+
+            List<GrantedAuthority> authorities = new ArrayList<>();
+            String[] roles = userRole.split(",");
+            for (String role : roles) {
+                String normalizedRole = role.trim();
+                if (normalizedRole.isEmpty()) {
+                    continue;
+                }
+                if (!normalizedRole.startsWith("ROLE_")) {
+                    normalizedRole = "ROLE_" + normalizedRole;
+                }
+                authorities.add(new SimpleGrantedAuthority(normalizedRole));
+            }
+            return authorities;
         }
 
         public String getName() {

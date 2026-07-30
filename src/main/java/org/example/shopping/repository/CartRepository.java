@@ -7,4 +7,6 @@ import org.example.shopping.entity.Carts;
 public interface CartRepository extends BaseRepository<Carts, Integer> {
     /** @return giỏ hàng đang hoạt động của tài khoản, hoặc {@code null} nếu chưa có. */
     Carts findByAccount(Accounts account);
+    /** Tìm giỏ hàng theo session id (anonymous carts). */
+    Carts findBySessionId(String sessionId);
 }

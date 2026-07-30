@@ -46,6 +46,11 @@ public class Orders extends BaseEntity {
     @Column(name = "status", nullable = false, length = 20)
     private OrderStatus status;
 
+    /** Tài khoản sở hữu đơn hàng; dùng để phân chia đơn hàng theo người dùng. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id")
+    private Accounts account;
+
     /** Các trường xóa mềm và lịch sử tạo/cập nhật bản ghi. */
     /** Các getter/setter bên dưới đọc hoặc thay đổi dữ liệu đơn hàng. */
     public Integer getId() {
@@ -118,6 +123,14 @@ public class Orders extends BaseEntity {
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public Accounts getAccount() {
+        return account;
+    }
+
+    public void setAccount(Accounts account) {
+        this.account = account;
     }
 
 }

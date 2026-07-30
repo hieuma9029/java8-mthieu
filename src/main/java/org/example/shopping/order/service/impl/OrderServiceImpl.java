@@ -143,14 +143,66 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
                 new ResponseStatusException(NOT_FOUND, "Không tìm thấy đơn hàng có id = " + id));
         if (request.getStatus() != null) {
             OrderStatus previousStatus = order.getStatus();
-            order.setStatus(request.getStatus());
-            if (previousStatus != OrderStatus.CONFIRMED
+            validateTransition(previousStatus, request.getStatus());
+            // Nếu đơn hàng vừa xác nhận nhưng bị hủy thì hoàn lại tồn kho.
+            if (previousStatus == OrderStatus.CONFIRMED && request.getStatus() == OrderStatus.CANCELLED) {
+                restoreProductQuantity(order);
+            // Nếu đơn hàng đã nhận thành công mà khách trả lại thì cũng hoàn kho.
+            } else if (previousStatus == OrderStatus.DELIVERED && request.getStatus() == OrderStatus.RETURNED) {
+                restoreProductQuantity(order);
+            // Nếu đơn hàng chuyển sang trạng thái CONFIRMED thì trừ tồn kho tương ứng.
+            } else if (previousStatus != OrderStatus.CONFIRMED
                     && request.getStatus() == OrderStatus.CONFIRMED) {
                 adjustProductQuantity(order);
             }
+            order.setStatus(request.getStatus());
         }
         order.setUpdatedAt(LocalDateTime.now());
         return repository.save(order);
+    }
+
+    private void validateTransition(OrderStatus previousStatus, OrderStatus nextStatus) {
+        if (previousStatus == null) {
+            previousStatus = OrderStatus.PENDING;
+        }
+
+        if (previousStatus == OrderStatus.PENDING) {
+            if (nextStatus != OrderStatus.CONFIRMED && nextStatus != OrderStatus.CANCELLED) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Đơn hàng ở trạng thái PENDING chỉ có thể chuyển sang CONFIRMED hoặc CANCELLED");
+            }
+            return;
+        }
+
+        if (previousStatus == OrderStatus.CONFIRMED) {
+            if (nextStatus != OrderStatus.CANCELLED && nextStatus != OrderStatus.SHIPPED && nextStatus != OrderStatus.DELIVERED) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Đơn hàng ở trạng thái CONFIRMED chỉ có thể chuyển sang CANCELLED, SHIPPED hoặc DELIVERED");
+            }
+            return;
+        }
+
+        if (previousStatus == OrderStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Đơn hàng ở trạng thái CANCELLED không thể chuyển tiếp");
+        }
+
+        if (previousStatus == OrderStatus.SHIPPED) {
+            if (nextStatus != OrderStatus.DELIVERED) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Đơn hàng ở trạng thái SHIPPED chỉ có thể chuyển sang DELIVERED");
+            }
+            return;
+        }
+
+        // Sau khi khách đã nhận hàng, chỉ cho phép chuyển sang trạng thái trả hàng.
+        if (previousStatus == OrderStatus.DELIVERED) {
+            if (nextStatus != OrderStatus.RETURNED) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Đơn hàng ở trạng thái DELIVERED chỉ có thể chuyển sang RETURNED");
+            }
+            return;
+        }
     }
 
     private void adjustProductQuantity(Orders order) {
@@ -163,6 +215,19 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
             if (newQuantity < 0) {
                 newQuantity = 0;
             }
+            product.setQuantity(newQuantity);
+            product.setUpdatedAt(LocalDateTime.now());
+            productRepository.save(product);
+        }
+    }
+
+    private void restoreProductQuantity(Orders order) {
+        for (OrderDetails detail : orderDetailRepository.findByOrders(order)) {
+            Products product = detail.getProducts();
+            if (product == null) {
+                continue;
+            }
+            int newQuantity = product.getQuantity() + detail.getQuantity();
             product.setQuantity(newQuantity);
             product.setUpdatedAt(LocalDateTime.now());
             productRepository.save(product);

@@ -9,10 +9,14 @@ public enum OrderStatus {
     PENDING("Chưa xác nhận đơn"),
     /** Đơn hàng đã được xác nhận bởi quản trị viên hoặc hệ thống. */
     CONFIRMED("Đã xác nhận"),
+    /** Đơn hàng đã bị hủy. */
+    CANCELLED("Đã hủy"),
     /** Đơn hàng đã được giao cho khách. */
     SHIPPED("Đã giao"),
     /** Khách hàng đã nhận hàng thành công. */
-    DELIVERED("Đã nhận");
+    DELIVERED("Đã nhận"),
+    /** Đơn hàng đã được trả lại và cần hoàn lại tồn kho. */
+    RETURNED("Đã trả hàng");
 
     private final String label;
 

@@ -6,7 +6,9 @@ import javax.validation.constraints.NotNull;
 
 /**
  * DTO dùng để nhận yêu cầu cập nhật trạng thái đơn hàng từ client.
- * Frontend gửi trạng thái mới bằng payload này khi thay đổi tiến trình đơn.
+ * Frontend gửi trạng thái mới bằng payload này nhằm điều khiển luồng xử lý đơn hàng
+ * theo các trạng thái như PENDING, CONFIRMED, CANCELLED, SHIPPED, DELIVERED, RETURNED.
+ * <p>Trong luồng hiện tại, trạng thái RETURNED chỉ hợp lệ khi đơn đang ở trạng thái DELIVERED.</p>
  */
 public class OrderStatusRequest {
 

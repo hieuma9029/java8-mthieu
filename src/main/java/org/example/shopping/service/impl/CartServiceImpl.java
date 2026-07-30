@@ -12,12 +12,14 @@ import org.example.shopping.repository.CartItemRepository;
 import org.example.shopping.repository.CartRepository;
 import org.example.shopping.repository.ProductRepository;
 import org.example.shopping.service.CartService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import javax.servlet.http.HttpSession;
 
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -35,16 +37,55 @@ public class CartServiceImpl implements CartService {
     private final ProductRepository productRepository;
     /** Repository dùng để xác định tài khoản từ tên đăng nhập trong phiên. */
     private final AccountRepository accountRepository;
+    private final HttpSession httpSession;
 
     /** Khởi tạo service với các repository cần cho nghiệp vụ giỏ hàng. */
     public CartServiceImpl(CartRepository cartRepository,
                            CartItemRepository cartItemRepository,
                            ProductRepository productRepository,
-                           AccountRepository accountRepository) {
+                           AccountRepository accountRepository,
+                           HttpSession httpSession) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
         this.accountRepository = accountRepository;
+        this.httpSession = httpSession;
+    }
+
+    @Override
+    public void mergeSessionCartIntoAccount(String sessionId, org.example.shopping.entity.Accounts accountAccount) {
+        if (sessionId == null || accountAccount == null) return;
+        Carts sessionCart = cartRepository.findBySessionId(sessionId);
+        if (sessionCart == null) return;
+
+        Carts accountCart = cartRepository.findByAccount(accountAccount);
+        if (accountCart == null) {
+            // assign session cart to account
+            sessionCart.setAccount(accountAccount);
+            sessionCart.setSessionId(null);
+            cartRepository.save(sessionCart);
+            httpSession.removeAttribute("CART_ID");
+            return;
+        }
+
+        // Merge items: add quantities to accountCart, or move items
+        java.util.List<CartItems> sessionItems = cartItemRepository.findByCart(sessionCart);
+        for (CartItems si : sessionItems) {
+            Products p = si.getProduct();
+            CartItems existing = cartItemRepository.findByCartAndProduct(accountCart, p);
+            if (existing == null) {
+                si.setCart(accountCart);
+                cartItemRepository.save(si);
+            } else {
+                existing.setQuantity(existing.getQuantity() + si.getQuantity());
+                existing.setUpdatedAt(LocalDateTime.now());
+                cartItemRepository.save(existing);
+                cartItemRepository.delete(si);
+            }
+        }
+        // delete session cart record
+        cartRepository.delete(sessionCart);
+        httpSession.removeAttribute("CART_ID");
     }
 
     /** Đọc giỏ hàng hiện tại và tính lại thành tiền theo giá sản phẩm hiện tại. */
@@ -74,7 +115,21 @@ public class CartServiceImpl implements CartService {
             item.setQuantity(item.getQuantity() + request.getQuantity());
             item.setUpdatedAt(LocalDateTime.now());
         }
-        cartItemRepository.save(item);
+
+        try {
+            cartItemRepository.save(item);
+        } catch (DataIntegrityViolationException ex) {
+            // Xử lý trường hợp cạnh tranh insert cùng product và cart
+            CartItems existing = cartItemRepository.findByCartAndProduct(cart, product);
+            if (existing != null) {
+                existing.setQuantity(existing.getQuantity() + request.getQuantity());
+                existing.setUpdatedAt(LocalDateTime.now());
+                cartItemRepository.save(existing);
+            } else {
+                throw ex;
+            }
+        }
+
         return toResponse(cartItemRepository.findByCart(cart));
     }
 
@@ -121,18 +176,37 @@ public class CartServiceImpl implements CartService {
     /** Lấy entity giỏ hàng theo tài khoản của phiên đăng nhập hiện tại. */
     @Override
     public Carts getCurrentCartEntity() {
-        return cartRepository.findByAccount(getCurrentAccount());
+        Accounts account = getCurrentAccountOrNull();
+        if (account != null) {
+            return cartRepository.findByAccount(account);
+        }
+        // anonymous: try session cart
+        String sessionCartId = (String) httpSession.getAttribute("CART_ID");
+        if (sessionCartId != null) {
+            Carts c = cartRepository.findBySessionId(sessionCartId);
+            if (c != null) return c;
+        }
+        return null;
     }
 
     /** Tạo giỏ mới cho tài khoản nếu tài khoản chưa có giỏ hoạt động. */
     private Carts getOrCreateCurrentCart() {
         Carts cart = getCurrentCartEntity();
+        Accounts account = getCurrentAccountOrNull();
         if (cart == null) {
             cart = new Carts();
-            cart.setAccount(getCurrentAccount());
+            cart.setAccount(account);
             cart.setCreatedAt(LocalDateTime.now());
             cart.setIsDelete(false);
+            if (account == null) {
+                // create session id and attach
+                String sid = java.util.UUID.randomUUID().toString();
+                cart.setSessionId(sid);
+            }
             cart = cartRepository.save(cart);
+            if (account == null) {
+                httpSession.setAttribute("CART_ID", cart.getSessionId());
+            }
         }
         return cart;
     }
@@ -149,6 +223,16 @@ public class CartServiceImpl implements CartService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Tài khoản không tồn tại");
         }
         return account;
+    }
+
+    /** Trả về Account nếu authenticated, hoặc null nếu anonymous. */
+    private Accounts getCurrentAccountOrNull() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            return null;
+        }
+        return accountRepository.findByUserNameAndIsDeleteFalse(authentication.getName());
     }
 
     /** Kiểm tra sản phẩm tồn tại và không bị xóa mềm trước khi cho vào giỏ. */

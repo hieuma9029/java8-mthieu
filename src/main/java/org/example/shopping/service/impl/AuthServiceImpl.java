@@ -27,13 +27,19 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final AccountRepository accountRepository;
     private final AccountService accountService;
+    private final CartServiceImpl cartService;
+    private final javax.servlet.http.HttpSession httpSession;
 
     public AuthServiceImpl(AuthenticationManager authenticationManager,
                            AccountRepository accountRepository,
-                           AccountService accountService) {
+                           AccountService accountService,
+                           CartServiceImpl cartService,
+                           javax.servlet.http.HttpSession httpSession) {
         this.authenticationManager = authenticationManager;
         this.accountRepository = accountRepository;
         this.accountService = accountService;
+        this.cartService = cartService;
+        this.httpSession = httpSession;
     }
 
     @Override
@@ -45,6 +51,13 @@ public class AuthServiceImpl implements AuthService {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             Accounts account = accountRepository.findByUserNameAndIsDeleteFalse(request.getUserName());
+            // Merge anonymous session cart into account cart after successful login
+            try {
+                String sessionId = (String) httpSession.getAttribute("CART_ID");
+                cartService.mergeSessionCartIntoAccount(sessionId, account);
+            } catch (Exception ex) {
+                // swallow merge errors to not block login; log if needed
+            }
             return ResponseEntity.ok(buildSuccessResponse(account));
         } catch (BadCredentialsException ex) {
             return ResponseEntity.status(401)

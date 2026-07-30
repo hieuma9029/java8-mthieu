@@ -4,7 +4,7 @@ import org.example.shopping.entity.Carts;
 import org.example.shopping.model.CartItemRequest;
 import org.example.shopping.model.CartResponse;
 
-/** Nghiệp vụ giỏ hàng của tài khoản đang đăng nhập. */
+/** Giao diện nghiệp vụ giỏ hàng cho tài khoản đang đăng nhập. */
 public interface CartService {
     /** @return giỏ hàng hiện tại ở định dạng dành cho frontend hiển thị. */
     CartResponse getCurrentCart();
@@ -24,4 +24,12 @@ public interface CartService {
      * @return entity giỏ hàng hoặc {@code null} khi người dùng chưa từng thêm sản phẩm
      */
     Carts getCurrentCartEntity();
+
+    /**
+     * Merge anonymous session cart (identified by sessionId) into the account's cart after login.
+     * If the account has no cart, the session cart is assigned to the account.
+     * @param sessionId id stored in HttpSession attribute CART_ID
+     * @param accountAccount account to merge into
+     */
+    void mergeSessionCartIntoAccount(String sessionId, org.example.shopping.entity.Accounts accountAccount);
 }

@@ -16,7 +16,11 @@ import java.time.LocalDateTime;
  * Xử lý tập trung các Exception của toàn bộ RestController.
  */
 @RestControllerAdvice
-/** Xử lý lỗi tập trung cho toàn bộ controller để trả về response thống nhất. */
+/**
+ * Xử lý lỗi tập trung cho toàn bộ controller để trả về response thống nhất.
+ * Lớp này chuyển các exception phát sinh từ validation, business logic hoặc database
+ * thành payload lỗi có cấu trúc rõ ràng cho frontend.
+ */
 public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 

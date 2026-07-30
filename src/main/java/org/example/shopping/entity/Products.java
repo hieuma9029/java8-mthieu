@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 })
 /**
  * Entity ánh xạ bảng products, lưu thông tin sản phẩm trong hệ thống bán hàng.
- * Mỗi sản phẩm có mã, tên, giá, số lượng tồn kho và trạng thái xóa mềm.
+ * Mỗi sản phẩm có mã, tên, giá, số lượng tồn kho và trạng thái xóa mềm để quản lý dữ liệu an toàn.
  */
 public class Products extends BaseEntity {
 

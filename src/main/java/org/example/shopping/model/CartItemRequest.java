@@ -1,7 +1,7 @@
 package org.example.shopping.model;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
 
 /** Dữ liệu thêm hoặc cập nhật một sản phẩm trong giỏ hàng. */
 public class CartItemRequest {
@@ -12,7 +12,7 @@ public class CartItemRequest {
 
     /** Số lượng cần thêm hoặc số lượng mới khi cập nhật giỏ. */
     @NotNull(message = "Số lượng không được để trống")
-    @Positive(message = "Số lượng phải lớn hơn 0")
+    @Min(value = 0, message = "Số lượng phải lớn hơn hoặc bằng 0")
     private Integer quantity;
 
     public Integer getProductId() {

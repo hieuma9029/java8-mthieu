@@ -43,6 +43,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    /**
+     * Xác thực người dùng bằng username/password và khởi tạo session cho phiên đăng nhập.
+     *
+     * @param request thông tin đăng nhập từ client
+     * @return response chứa thông tin user khi đăng nhập thành công hoặc lỗi 401 khi sai thông tin
+     */
     public ResponseEntity<Map<String, Object>> login(LoginRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -66,6 +72,13 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    /**
+     * Đăng xuất người dùng bằng cách hủy session hiện tại và xoá context xác thực.
+     *
+     * @param request request HTTP hiện tại
+     * @param response response HTTP hiện tại
+     * @return response xác nhận đã đăng xuất
+     */
     public ResponseEntity<Map<String, Object>> logout(HttpServletRequest request, HttpServletResponse response) {
         if (request != null) {
             javax.servlet.http.HttpSession session = request.getSession(false);
@@ -82,6 +95,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    /**
+     * Lấy thông tin người dùng đang đăng nhập từ SecurityContext hiện tại.
+     *
+     * @return response chứa profile người dùng hoặc lỗi 401/404 khi chưa đăng nhập hoặc không tìm thấy tài khoản
+     */
     public ResponseEntity<Map<String, Object>> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
@@ -97,6 +115,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    /**
+     * Cập nhật thông tin hồ sơ cho tài khoản đang đăng nhập.
+     *
+     * @param profileData dữ liệu mới như tên, email, phone, address
+     * @return response chứa thông tin tài khoản sau khi cập nhật
+     */
     public ResponseEntity<Map<String, Object>> updateProfile(Map<String, Object> profileData) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
@@ -125,6 +149,12 @@ public class AuthServiceImpl implements AuthService {
         return ResponseEntity.ok(buildSuccessResponse(account));
     }
 
+    /**
+     * Tạo payload phản hồi thành công cho các endpoint xác thực và profile.
+     *
+     * @param account tài khoản đang xử lý
+     * @return map dữ liệu chuẩn hóa để frontend sử dụng
+     */
     private Map<String, Object> buildSuccessResponse(Accounts account) {
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
@@ -142,6 +172,12 @@ public class AuthServiceImpl implements AuthService {
         return result;
     }
 
+    /**
+     * Tạo payload phản hồi lỗi cho các endpoint xác thực.
+     *
+     * @param message thông báo lỗi cần trả về client
+     * @return map chứa trạng thái thất bại và nội dung lỗi
+     */
     private Map<String, Object> buildErrorResponse(String message) {
         Map<String, Object> result = new HashMap<>();
         result.put("success", false);

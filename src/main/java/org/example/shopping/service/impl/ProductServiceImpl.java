@@ -29,7 +29,11 @@ public class ProductServiceImpl extends BaseServiceImpl<Products, Integer, Produ
     }
 
     @Override
-    /** Đọc toàn bộ các sản phẩm chưa bị xóa. */
+    /**
+     * Đọc toàn bộ các sản phẩm chưa bị xóa mềm.
+     *
+     * @return danh sách sản phẩm đang hoạt động
+     */
     public List<Products> findAll() {
         return repository.findByIsDeleteFalse();
     }
@@ -47,7 +51,11 @@ public class ProductServiceImpl extends BaseServiceImpl<Products, Integer, Produ
     }
 
     @Override
-    /** Lưu sản phẩm mới. */
+    /**
+     * Lưu sản phẩm mới và đánh dấu nó là chưa bị xóa mềm.
+     *
+     * @param product sản phẩm cần lưu vào hệ thống
+     */
     public void save(Products product) {
         product.setIsDelete(false);
         product.setCreatedAt(LocalDateTime.now());
@@ -55,7 +63,12 @@ public class ProductServiceImpl extends BaseServiceImpl<Products, Integer, Produ
     }
 
     @Override
-    /** Tìm sản phẩm; trả về null nếu không tìm thấy hoặc đã bị xóa mềm. */
+    /**
+     * Tìm sản phẩm theo id, nhưng bỏ qua các bản ghi đã bị xóa mềm.
+     *
+     * @param id mã sản phẩm cần tìm
+     * @return sản phẩm đang hoạt động hoặc null nếu không tồn tại
+     */
     public Products findById(Integer id) {
         Products product = repository.findById(id).orElse(null);
         if (product == null || Boolean.TRUE.equals(product.getIsDelete())) {
@@ -65,7 +78,12 @@ public class ProductServiceImpl extends BaseServiceImpl<Products, Integer, Produ
     }
 
     @Override
-    /** Cập nhật thông tin sản phẩm. */
+    /**
+     * Cập nhật thông tin sản phẩm hiện có.
+     *
+     * @param id mã sản phẩm cần cập nhật
+     * @param products dữ liệu mới của sản phẩm
+     */
     public void update(Integer id, Products products) {
 
         // Chỉ cập nhật khi sản phẩm tồn tại và chưa bị xóa mềm.
@@ -86,7 +104,11 @@ public class ProductServiceImpl extends BaseServiceImpl<Products, Integer, Produ
     }
 
     @Override
-    /** Xóa mềm sản phẩm theo id. */
+    /**
+     * Xóa mềm sản phẩm theo id, thay vì xóa vật lý khỏi database.
+     *
+     * @param id mã sản phẩm cần xóa mềm
+     */
     public void delete(Integer id) {
 
         // Chỉ xóa mềm khi sản phẩm còn tồn tại.
@@ -102,7 +124,11 @@ public class ProductServiceImpl extends BaseServiceImpl<Products, Integer, Produ
     }
 
     @Override
-    /** Khôi phục sản phẩm đã bị xóa mềm. */
+    /**
+     * Khôi phục sản phẩm đã bị xóa mềm.
+     *
+     * @param id mã sản phẩm cần khôi phục
+     */
     public void restore(Integer id) {
         // Không dùng findById(id) vì hàm đó ẩn sản phẩm có isDelete = true.
         Products product = repository.findById(id).orElse(null);

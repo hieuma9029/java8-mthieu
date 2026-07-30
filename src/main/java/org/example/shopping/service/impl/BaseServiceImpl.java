@@ -25,13 +25,23 @@ public abstract class BaseServiceImpl<T extends BaseEntity, ID extends Serializa
     }
 
     @Override
-    /** Trả về toàn bộ thực thể trong repository. */
+    /**
+     * Trả về toàn bộ thực thể đang tồn tại trong repository.
+     *
+     * @return danh sách thực thể
+     */
     public List<T> findAll() {
         return repository.findAll();
     }
 
     @Override
-    /** Trả về một trang dữ liệu của thực thể. */
+    /**
+     * Trả về một trang dữ liệu của thực thể theo phân trang.
+     *
+     * @param page số trang bắt đầu từ 0
+     * @param size số phần tử mỗi trang
+     * @return trang dữ liệu tương ứng
+     */
     public Page<T> findAll(int page, int size) {
         return repository.findAll(PageRequest.of(page, size));
     }

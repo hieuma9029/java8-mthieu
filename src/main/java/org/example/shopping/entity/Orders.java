@@ -9,8 +9,9 @@ import org.example.shopping.entity.OrderStatus;
 @Entity
 @Table(name = "orders")
 /**
- * Entity ánh xạ bảng orders, lưu thông tin chung của một đơn hàng.
- * Bao gồm thông tin khách hàng, tổng tiền, thời gian đặt hàng và trạng thái xử lý.
+ * Entity đại diện cho một đơn hàng trong hệ thống bán hàng.
+ * Lớp này lưu thông tin chung của đơn như khách hàng, tổng giá trị, thời điểm đặt hàng
+ * và trạng thái hiện tại để hệ thống có thể theo dõi tiến trình xử lý.
  */
 public class Orders extends BaseEntity {
     /** Khóa chính tự tăng. */

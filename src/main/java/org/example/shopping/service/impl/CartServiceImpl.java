@@ -53,6 +53,12 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    /**
+     * Gộp giỏ hàng tạm thời của session anonymous vào giỏ hàng của tài khoản đã đăng nhập.
+     *
+     * @param sessionId mã session trước khi đăng nhập
+     * @param accountAccount tài khoản nhận giỏ hàng sau khi đăng nhập
+     */
     public void mergeSessionCartIntoAccount(String sessionId, org.example.shopping.entity.Accounts accountAccount) {
         if (sessionId == null || accountAccount == null) return;
         Carts sessionCart = cartRepository.findBySessionId(sessionId);
@@ -88,7 +94,11 @@ public class CartServiceImpl implements CartService {
         httpSession.removeAttribute("CART_ID");
     }
 
-    /** Đọc giỏ hàng hiện tại và tính lại thành tiền theo giá sản phẩm hiện tại. */
+    /**
+     * Đọc giỏ hàng hiện tại và tính lại thành tiền theo giá sản phẩm hiện tại.
+     *
+     * @return DTO chứa danh sách sản phẩm trong giỏ và tổng tiền
+     */
     @Override
     @Transactional(readOnly = true)
     public CartResponse getCurrentCart() {
@@ -96,10 +106,17 @@ public class CartServiceImpl implements CartService {
         return toResponse(cart == null ? new ArrayList<CartItems>() : cartItemRepository.findByCart(cart));
     }
 
-    /** Thêm một sản phẩm; sản phẩm trùng sẽ được cộng dồn số lượng. */
+    /**
+     * Thêm một sản phẩm vào giỏ hàng; nếu sản phẩm đã tồn tại thì tăng số lượng thay vì tạo bản ghi mới.
+     *
+     * @param request thông tin sản phẩm và số lượng cần thêm
+     * @return DTO giỏ hàng mới sau khi cập nhật
+     */
     @Override
     @Transactional
     public CartResponse addItem(CartItemRequest request) {
+        validateQuantity(request.getQuantity());
+
         Carts cart = getOrCreateCurrentCart();
         Products product = getAvailableProduct(request.getProductId());
         CartItems item = cartItemRepository.findByCartAndProduct(cart, product);
@@ -133,10 +150,18 @@ public class CartServiceImpl implements CartService {
         return toResponse(cartItemRepository.findByCart(cart));
     }
 
-    /** Cập nhật số lượng tuyệt đối của một sản phẩm đã có trong giỏ. */
+    /**
+     * Cập nhật số lượng tuyệt đối của một sản phẩm đã có trong giỏ hàng.
+     *
+     * @param productId id sản phẩm trên URL
+     * @param request thông tin số lượng mới
+     * @return DTO giỏ hàng sau khi cập nhật
+     */
     @Override
     @Transactional
     public CartResponse updateItem(Integer productId, CartItemRequest request) {
+        validateQuantity(request.getQuantity());
+
         if (!productId.equals(request.getProductId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "productId trên URL và body phải giống nhau");
         }
@@ -155,7 +180,11 @@ public class CartServiceImpl implements CartService {
         return toResponse(cartItemRepository.findByCart(cart));
     }
 
-    /** Xóa một dòng sản phẩm khỏi giỏ; an toàn nếu giỏ hoặc sản phẩm không còn tồn tại. */
+    /**
+     * Xóa một dòng sản phẩm khỏi giỏ hàng; phương thức này an toàn nếu giỏ hoặc sản phẩm không còn tồn tại.
+     *
+     * @param productId id sản phẩm cần xóa khỏi giỏ
+     */
     @Override
     @Transactional
     public void removeItem(Integer productId) {
@@ -242,6 +271,16 @@ public class CartServiceImpl implements CartService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy sản phẩm có id = " + productId);
         }
         return product;
+    }
+
+    /** Chấp nhận quantity = 0 nhưng từ chối số âm và giá trị không hợp lệ. */
+    private void validateQuantity(Integer quantity) {
+        if (quantity == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Số lượng không được để trống");
+        }
+        if (quantity < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Số lượng phải lớn hơn hoặc bằng 0");
+        }
     }
 
     /** Chuyển entity giỏ hàng sang DTO, đồng thời tính subtotal và tổng tiền cho frontend. */

@@ -3,7 +3,10 @@ package org.example.shopping.order.model;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 
-/** Dữ liệu frontend gửi khi khách xác nhận đặt hàng từ giỏ hàng. */
+/**
+ * DTO nhận dữ liệu từ frontend khi khách hàng xác nhận đặt hàng từ giỏ hàng.
+ * Thông tin này được dùng để xây dựng đơn hàng và lưu thông tin người nhận vào cơ sở dữ liệu.
+ */
 public class CheckoutRequest {
 
     /** Tên người nhận đơn hàng. */

@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 /**
  * Entity cha chứa các trường dùng chung cho tất cả entity.
+ * Các thuộc tính này hỗ trợ theo dõi thời gian tạo, cập nhật, xóa mềm và trạng thái ẩn hiện.
  */
 @MappedSuperclass
 public abstract class BaseEntity {

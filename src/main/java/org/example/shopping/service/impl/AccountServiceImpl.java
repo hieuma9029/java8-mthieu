@@ -22,11 +22,22 @@ public class AccountServiceImpl extends BaseServiceImpl<Accounts, Integer, Accou
     }
 
     @Override
+    /**
+     * Trả về danh sách tài khoản chưa bị xóa mềm.
+     *
+     * @return danh sách tài khoản đang hoạt động
+     */
     public List<Accounts> findAll() {
         return repository.findByIsDeleteFalse();
     }
 
     @Override
+    /**
+     * Tìm tài khoản theo id, bỏ qua các bản ghi đã bị xóa mềm.
+     *
+     * @param id mã tài khoản cần tìm
+     * @return tài khoản hợp lệ hoặc null nếu không tồn tại
+     */
     public Accounts findById(Integer id) {
         return repository.findByIdAndIsDeleteFalse(id);
     }

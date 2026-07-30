@@ -72,6 +72,8 @@ public class OrderCheckoutService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Giỏ hàng trống");
         }
 
+        validateCartItems(cartItems);
+
         BigDecimal totalAmount = calculateTotalAmount(cartItems);
         order.setAmount(totalAmount);
 
@@ -105,6 +107,17 @@ public class OrderCheckoutService {
             totalAmount = totalAmount.add(product.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
         }
         return totalAmount;
+    }
+
+    private void validateCartItems(List<CartItems> cartItems) {
+        for (CartItems cartItem : cartItems) {
+            if (cartItem == null || cartItem.getQuantity() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Số lượng sản phẩm không được để trống");
+            }
+            if (cartItem.getQuantity() < 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Số lượng sản phẩm phải lớn hơn hoặc bằng 0");
+            }
+        }
     }
 
     private void createOrderDetails(Orders savedOrder, List<CartItems> cartItems) {

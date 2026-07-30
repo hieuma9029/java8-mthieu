@@ -5,7 +5,10 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "order_details")
-/* Entity đại diện một dòng hàng trong đơn: sản phẩm, số lượng và giá tại lúc mua. */
+/**
+ * Entity đại diện cho một dòng sản phẩm nằm trong đơn hàng.
+ * Mỗi bản ghi lưu sản phẩm đã được chọn, số lượng và giá trị tiền tại thời điểm đặt hàng.
+ */
 public class OrderDetails extends BaseEntity {
     /** Khóa chính tự tăng của dòng chi tiết. */
     @Id

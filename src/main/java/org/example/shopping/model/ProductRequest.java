@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 /**
  * DTO dùng để nhận dữ liệu từ client khi thêm hoặc sửa sản phẩm.
- * Chứa các trường cần thiết để tạo mới hoặc cập nhật sản phẩm.
+ * Chứa các trường cần thiết để tạo mới hoặc cập nhật thông tin sản phẩm như tên, giá và số lượng.
  */
 public class ProductRequest {
     private String code;

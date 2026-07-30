@@ -7,7 +7,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-/** Hiện thực dịch vụ tải người dùng cho quá trình xác thực của Spring Security. */
+/**
+ * Hiện thực dịch vụ tải người dùng cho quá trình xác thực của Spring Security.
+ * Lớp này lấy tài khoản từ database để Spring Security có thể kiểm tra đăng nhập.
+ */
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
     // Repository dùng để truy vấn thông tin tài khoản từ cơ sở dữ liệu.

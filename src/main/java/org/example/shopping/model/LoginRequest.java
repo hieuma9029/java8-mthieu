@@ -4,7 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.validation.constraints.NotBlank;
 
 /**
- * DTO dùng để nhận thông tin đăng nhập.
+ * DTO dùng để nhận thông tin đăng nhập từ frontend.
+ * Lớp này chứa username và password để controller chuyển tới tầng xác thực.
  */
 public class LoginRequest {
     @JsonProperty("username")

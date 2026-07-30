@@ -2,7 +2,10 @@ package org.example.shopping.order.model;
 
 import org.example.shopping.entity.Orders;
 
-/** Helper chuyển đổi giữa entity Orders và các DTO dùng cho API đơn hàng. */
+/**
+ * Helper dùng để chuyển đổi giữa entity Orders và các DTO dùng cho API đơn hàng.
+ * Việc tách riêng lớp này giúp controller không cần trực tiếp thao tác với entity.
+ */
 public class OrderMapper {
 
     public static OrderResponse toResponse(Orders order) {

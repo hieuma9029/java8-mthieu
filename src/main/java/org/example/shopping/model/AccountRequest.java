@@ -4,7 +4,8 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
 /**
- * DTO dùng để nhận dữ liệu tài khoản từ client.
+ * DTO dùng để nhận dữ liệu tài khoản từ client khi tạo hoặc cập nhật tài khoản.
+ * Các trường trong lớp này tương ứng với thông tin username, password và vai trò.
  */
 public class AccountRequest {
     @NotBlank(message = "Tên đăng nhập không được để trống")

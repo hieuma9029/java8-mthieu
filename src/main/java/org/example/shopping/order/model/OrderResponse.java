@@ -1,41 +1,54 @@
-package org.example.shopping.model;
+package org.example.shopping.order.model;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
+import java.time.LocalDateTime;
 import java.math.BigDecimal;
 
 import org.example.shopping.entity.OrderStatus;
 
 /**
- * DTO dùng để nhận dữ liệu đơn hàng từ client khi tạo hoặc cập nhật đơn hàng.
- * Chứa thông tin khách hàng, tổng tiền và trạng thái đơn hàng.
+ * DTO dùng để trả dữ liệu đơn hàng cho client.
+ * Dữ liệu này thường được dùng trong các màn hình quản lý đơn hàng.
  */
-public class OrderRequest {
-    @NotBlank(message = "Tên khách hàng không được để trống")
+public class OrderResponse {
+    private Integer id;
+
+    private Integer orderNum;
+
     private String customerName;
 
-    @NotBlank(message = "Email không được để trống")
     private String customerEmail;
 
-    @NotBlank(message = "Số điện thoại không được để trống")
     private String customerPhone;
 
-    @NotBlank(message = "Địa chỉ không được để trống")
     private String customerAddress;
 
-    @NotNull(message = "Tổng tiền không được để trống")
-    @Positive(message = "Tổng tiền phải lớn hơn 0")
     private BigDecimal amount;
 
-    @NotNull(message = "Trạng thái đơn hàng không được để trống")
+    private LocalDateTime orderDate;
+
     private OrderStatus status;
 
     /**
-     * Các getter/setter bên dưới lần lượt đọc hoặc gán thông tin khách hàng
-     * và tổng tiền của yêu cầu tạo/cập nhật đơn hàng. Tham số của mỗi setter
-     * là giá trị mới cho thuộc tính có cùng tên.
+     * Các getter/setter bên dưới lần lượt đọc hoặc gán dữ liệu đơn hàng trong
+     * DTO phản hồi. Tham số của mỗi setter là giá trị mới cho thuộc tính có
+     * cùng tên.
      */
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Integer getOrderNum() {
+        return orderNum;
+    }
+
+    public void setOrderNum(Integer orderNum) {
+        this.orderNum = orderNum;
+    }
+
     public String getCustomerName() {
         return customerName;
     }
@@ -74,6 +87,14 @@ public class OrderRequest {
 
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
+    }
+
+    public LocalDateTime getOrderDate() {
+        return orderDate;
+    }
+
+    public void setOrderDate(LocalDateTime orderDate) {
+        this.orderDate = orderDate;
     }
 
     public OrderStatus getStatus() {

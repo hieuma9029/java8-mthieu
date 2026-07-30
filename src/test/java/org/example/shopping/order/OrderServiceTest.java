@@ -1,10 +1,10 @@
-package org.example.shopping;
+package org.example.shopping.order;
 
 import org.example.shopping.entity.OrderStatus;
 import org.example.shopping.entity.Orders;
-import org.example.shopping.model.OrderStatusRequest;
-import org.example.shopping.repository.OrderRepository;
-import org.example.shopping.service.OrderService;
+import org.example.shopping.order.model.OrderStatusRequest;
+import org.example.shopping.order.repository.OrderRepository;
+import org.example.shopping.order.service.OrderService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

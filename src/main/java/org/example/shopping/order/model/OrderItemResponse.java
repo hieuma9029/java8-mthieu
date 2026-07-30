@@ -1,4 +1,4 @@
-package org.example.shopping.model;
+package org.example.shopping.order.model;
 import java.math.BigDecimal;
 
 /** Một dòng sản phẩm đã được chốt trong đơn hàng. */

@@ -1,18 +1,22 @@
-package org.example.shopping.service.impl;
+package org.example.shopping.order.service.impl;
 
+import org.example.shopping.entity.Accounts;
 import org.example.shopping.entity.CartItems;
 import org.example.shopping.entity.Carts;
 import org.example.shopping.entity.OrderDetails;
 import org.example.shopping.entity.OrderStatus;
 import org.example.shopping.entity.Orders;
 import org.example.shopping.entity.Products;
-import org.example.shopping.model.CheckoutRequest;
+import org.example.shopping.order.model.CheckoutRequest;
+import org.example.shopping.order.repository.OrderDetailRepository;
+import org.example.shopping.order.repository.OrderRepository;
+import org.example.shopping.repository.AccountRepository;
 import org.example.shopping.repository.CartItemRepository;
-import org.example.shopping.repository.OrderDetailRepository;
-import org.example.shopping.repository.OrderRepository;
 import org.example.shopping.repository.ProductRepository;
 import org.example.shopping.service.CartService;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -33,17 +37,20 @@ public class OrderCheckoutService {
     private final OrderDetailRepository orderDetailRepository;
     private final CartService cartService;
     private final CartItemRepository cartItemRepository;
+    private final AccountRepository accountRepository;
 
     public OrderCheckoutService(OrderRepository orderRepository,
                                 ProductRepository productRepository,
                                 OrderDetailRepository orderDetailRepository,
                                 CartService cartService,
-                                CartItemRepository cartItemRepository) {
+                                CartItemRepository cartItemRepository,
+                                AccountRepository accountRepository) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.cartService = cartService;
         this.cartItemRepository = cartItemRepository;
+        this.accountRepository = accountRepository;
     }
 
     /**
@@ -87,6 +94,7 @@ public class OrderCheckoutService {
         order.setStatus(OrderStatus.PENDING);
         order.setCreatedAt(LocalDateTime.now());
         order.setIsDelete(false);
+        order.setAccount(getCurrentAccountIfAuthenticated());
         return order;
     }
 
@@ -121,5 +129,14 @@ public class OrderCheckoutService {
                     "Không tìm thấy sản phẩm có id = " + productId);
         }
         return product;
+    }
+
+    private Accounts getCurrentAccountIfAuthenticated() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            return null;
+        }
+        return accountRepository.findByUserNameAndIsDeleteFalse(authentication.getName());
     }
 }

@@ -1,4 +1,4 @@
-package org.example.shopping.model;
+package org.example.shopping.order.model;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;

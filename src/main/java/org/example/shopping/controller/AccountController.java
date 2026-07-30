@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/accounts")
-/** API REST quản lý tài khoản tại đường dẫn /accounts. */
+/** Controller REST quản lý tài khoản và các thao tác liên quan đến người dùng. */
 public class AccountController {
     private final AccountService accountService;
     private final AccountRepository accountRepository;

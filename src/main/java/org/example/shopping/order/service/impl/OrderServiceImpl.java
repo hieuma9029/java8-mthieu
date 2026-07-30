@@ -1,16 +1,21 @@
-package org.example.shopping.service.impl;
+package org.example.shopping.order.service.impl;
 
+import org.example.shopping.entity.Accounts;
 import org.example.shopping.entity.OrderDetails;
 import org.example.shopping.entity.Orders;
 import org.example.shopping.entity.OrderStatus;
 import org.example.shopping.entity.Products;
-import org.example.shopping.model.CheckoutRequest;
-import org.example.shopping.model.OrderDetailsResponse;
-import org.example.shopping.model.OrderItemResponse;
-import org.example.shopping.model.OrderStatusRequest;
-import org.example.shopping.repository.OrderDetailRepository;
-import org.example.shopping.repository.OrderRepository;
-import org.example.shopping.service.OrderService;
+import org.example.shopping.order.model.CheckoutRequest;
+import org.example.shopping.order.model.OrderDetailsResponse;
+import org.example.shopping.order.model.OrderItemResponse;
+import org.example.shopping.order.model.OrderStatusRequest;
+import org.example.shopping.order.repository.OrderRepository;
+import org.example.shopping.order.service.OrderService;
+import org.example.shopping.order.repository.OrderDetailRepository;
+import org.example.shopping.repository.AccountRepository;
+import org.example.shopping.repository.ProductRepository;
+import org.example.shopping.service.impl.BaseServiceImpl;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,12 +29,14 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @Service
 /**
  * Hiện thực các nghiệp vụ liên quan đến đơn hàng bằng OrderRepository.
- * Lớp này xử lý checkout, cập nhật trạng thái, lấy chi tiết đơn và xóa dữ liệu liên quan.
+ * Lớp này xử lý checkout, cập nhật trạng thái, lấy chi tiết đơn và kiểm soát quyền xem của admin/user.
  */
 public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepository> implements OrderService {
 
     /** Lưu các dòng hàng đã được chốt vào đơn. */
     private final OrderDetailRepository orderDetailRepository;
+    /** Repository sản phẩm để cập nhật tồn kho khi đơn được xác nhận. */
+    private final ProductRepository productRepository;
     /** Service phụ trách tạo đơn hàng từ giỏ hàng hiện tại. */
     private final OrderCheckoutService orderCheckoutService;
 
@@ -38,12 +45,18 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
      *
      * @param orderRepository repository dùng cho các thao tác đơn hàng
      */
+    private final AccountRepository accountRepository;
+
     public OrderServiceImpl(OrderRepository orderRepository,
                             OrderDetailRepository orderDetailRepository,
-                            OrderCheckoutService orderCheckoutService) {
+                            ProductRepository productRepository,
+                            OrderCheckoutService orderCheckoutService,
+                            AccountRepository accountRepository) {
         super(orderRepository);
         this.orderDetailRepository = orderDetailRepository;
+        this.productRepository = productRepository;
         this.orderCheckoutService = orderCheckoutService;
+        this.accountRepository = accountRepository;
     }
 
     @Override
@@ -70,15 +83,90 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
     }
 
     @Override
+    public List<Orders> findByAccountName(String username) {
+        Accounts account = accountRepository.findByUserNameAndIsDeleteFalse(username);
+        if (account == null) {
+            return new ArrayList<>();
+        }
+
+        if (isAdmin(account)) {
+            return repository.findAll();
+        }
+
+        return repository.findByAccountAndIsDeleteFalse(account);
+    }
+
+    @Override
+    public Orders findOwnedByIdOrThrow(Integer orderId, String username) {
+        Accounts account = accountRepository.findByUserNameAndIsDeleteFalse(username);
+        if (account == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Tài khoản không tồn tại");
+        }
+
+        Orders order = repository.findById(orderId).orElseThrow(() ->
+                new ResponseStatusException(NOT_FOUND, "Không tìm thấy đơn hàng có id = " + orderId));
+
+        if (isAdmin(account)) {
+            return order;
+        }
+
+        if (order.getAccount() == null || !account.getId().equals(order.getAccount().getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền xem đơn hàng này");
+        }
+        return order;
+    }
+
+    private boolean isAdmin(Accounts account) {
+        if (account == null) {
+            return false;
+        }
+
+        String role = account.getUserRole();
+        if (role == null || role.trim().isEmpty()) {
+            return false;
+        }
+
+        String[] roles = role.split(",");
+        for (String item : roles) {
+            String normalizedRole = item.trim().toUpperCase();
+            if ("ROLE_ADMIN".equals(normalizedRole) || "ADMIN".equals(normalizedRole)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     /** Cập nhật trạng thái đơn hàng theo mã định danh và payload trạng thái mới. */
     public Orders updateStatus(Integer id, OrderStatusRequest request) {
         Orders order = repository.findById(id).orElseThrow(() ->
                 new ResponseStatusException(NOT_FOUND, "Không tìm thấy đơn hàng có id = " + id));
         if (request.getStatus() != null) {
+            OrderStatus previousStatus = order.getStatus();
             order.setStatus(request.getStatus());
+            if (previousStatus != OrderStatus.CONFIRMED
+                    && request.getStatus() == OrderStatus.CONFIRMED) {
+                adjustProductQuantity(order);
+            }
         }
         order.setUpdatedAt(LocalDateTime.now());
         return repository.save(order);
+    }
+
+    private void adjustProductQuantity(Orders order) {
+        for (OrderDetails detail : orderDetailRepository.findByOrders(order)) {
+            Products product = detail.getProducts();
+            if (product == null) {
+                continue;
+            }
+            int newQuantity = product.getQuantity() - detail.getQuantity();
+            if (newQuantity < 0) {
+                newQuantity = 0;
+            }
+            product.setQuantity(newQuantity);
+            product.setUpdatedAt(LocalDateTime.now());
+            productRepository.save(product);
+        }
     }
 
     @Override
@@ -103,6 +191,9 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
         List<OrderItemResponse> items = new ArrayList<>();
         for (OrderDetails detail : orderDetailRepository.findByOrders(order)) {
             Products product = detail.getProducts();
+            if (product == null) {
+                continue;
+            }
             OrderItemResponse item = new OrderItemResponse();
             item.setProductId(product.getId());
             item.setCode(product.getCode());

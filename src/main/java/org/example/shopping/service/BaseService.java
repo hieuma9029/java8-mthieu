@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 /**
- * Service cha dùng chung cho các Entity.
+ * Interface cha cung cấp các thao tác CRUD dùng chung cho các service nghiệp vụ.
  */
 public interface BaseService<T, ID> {
 

@@ -2,7 +2,7 @@ package org.example.shopping.service;
 
 import org.example.shopping.entity.Products;
 
-/** Service cho các nghiệp vụ đặc thù của sản phẩm. */
+/** Service chuyên trách cho các nghiệp vụ liên quan đến sản phẩm. */
 public interface ProductService extends BaseService<Products, Integer> {
 
     /**

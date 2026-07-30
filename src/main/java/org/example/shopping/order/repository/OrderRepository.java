@@ -1,6 +1,10 @@
-package org.example.shopping.repository;
+package org.example.shopping.order.repository;
 
+import org.example.shopping.entity.Accounts;
 import org.example.shopping.entity.Orders;
+import org.example.shopping.repository.BaseRepository;
+
+import java.util.List;
 
 /**
  * Repository truy cập dữ liệu cho thực thể {@link Orders}.
@@ -12,4 +16,5 @@ import org.example.shopping.entity.Orders;
  * @see BaseRepository
  */
 public interface OrderRepository extends BaseRepository<Orders, Integer> {
+    List<Orders> findByAccountAndIsDeleteFalse(Accounts account);
 }

@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
 /**
- * Service chuyên trách cho các thao tác xác thực và hồ sơ người dùng.
+ * Service chuyên trách cho các thao tác xác thực, đăng xuất và cập nhật hồ sơ người dùng.
  */
 public interface AuthService {
 

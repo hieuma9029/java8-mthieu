@@ -1,7 +1,8 @@
-package org.example.shopping.repository;
+package org.example.shopping.order.repository;
 
 import org.example.shopping.entity.OrderDetails;
 import org.example.shopping.entity.Orders;
+import org.example.shopping.repository.BaseRepository;
 
 import java.util.List;
 

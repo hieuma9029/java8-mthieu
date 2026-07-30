@@ -1,12 +1,13 @@
-package org.example.shopping.service.impl;
+package org.example.shopping.order.service.impl;
 
 import org.example.shopping.entity.OrderDetails;
-import org.example.shopping.repository.OrderDetailRepository;
-import org.example.shopping.service.OrderDetailService;
+import org.example.shopping.order.repository.OrderDetailRepository;
+import org.example.shopping.order.service.OrderDetailService;
+import org.example.shopping.service.impl.BaseServiceImpl;
 import org.springframework.stereotype.Service;
 
 @Service
-/** Hiện thực CRUD các dòng chi tiết đơn hàng bằng OrderDetailRepository. */
+/** Hiện thực CRUD cho các dòng chi tiết đơn hàng bằng OrderDetailRepository. */
 public class OrderDetailServiceImpl extends BaseServiceImpl<OrderDetails, Integer, OrderDetailRepository> implements OrderDetailService {
 
     /**

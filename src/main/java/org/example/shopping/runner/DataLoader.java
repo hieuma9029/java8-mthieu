@@ -5,7 +5,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 @Component
-/** Component chạy khi ứng dụng khởi động; có thể dùng để nạp dữ liệu mẫu. */
+/** Component chạy khi ứng dụng khởi động để chuẩn bị dữ liệu mẫu hoặc cấu hình ban đầu. */
 public class DataLoader implements CommandLineRunner {
     /**
      * Khởi tạo component với repository sản phẩm.

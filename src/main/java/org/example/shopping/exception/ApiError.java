@@ -3,7 +3,7 @@ package org.example.shopping.exception;
 import java.time.LocalDateTime;
 
 /**
- * DTO dùng để trả thông tin lỗi cho client.
+ * DTO dùng để trả thông tin lỗi cho client dưới dạng chuẩn hóa.
  */
 public class ApiError {
 

@@ -82,9 +82,15 @@ public class SecurityConfig {
                 // Khai báo quyền truy cập cho từng nhóm đường dẫn.
                 .authorizeHttpRequests(authorize -> authorize
                         .antMatchers("/auth/login", "/auth/logout", "/auth/csrf").permitAll()
+                        .antMatchers(HttpMethod.GET, "/products/**").permitAll()
+                        .antMatchers(HttpMethod.GET, "/orders/**").authenticated()
+                        .antMatchers(HttpMethod.POST, "/orders/checkout").permitAll()
+                        .antMatchers(HttpMethod.POST, "/cart/**").permitAll()
+                        .antMatchers(HttpMethod.GET, "/cart/**").permitAll()
+                        .antMatchers(HttpMethod.PUT, "/cart/**").permitAll()
+                        .antMatchers(HttpMethod.DELETE, "/cart/**").permitAll()
                         .antMatchers("/auth/me", "/auth/profile").authenticated()
                         .antMatchers("/accounts/**").hasRole("ADMIN")
-                        .antMatchers(HttpMethod.GET, "/products/**").permitAll()
                         .antMatchers(HttpMethod.POST, "/products/**").hasRole("ADMIN")
                         .antMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
                         .antMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")

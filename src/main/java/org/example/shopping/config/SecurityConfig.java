@@ -84,6 +84,7 @@ public class SecurityConfig {
                         .antMatchers("/auth/login", "/auth/logout", "/auth/csrf").permitAll()
                         .antMatchers(HttpMethod.GET, "/products/**").permitAll()
                         .antMatchers(HttpMethod.GET, "/categories/**").permitAll()
+                        .antMatchers(HttpMethod.GET, "/reviews/products/**").permitAll()
                         .antMatchers(HttpMethod.GET, "/orders/**").authenticated()
                         .antMatchers(HttpMethod.POST, "/orders/checkout").permitAll()
                         .antMatchers(HttpMethod.POST, "/cart/**").permitAll()

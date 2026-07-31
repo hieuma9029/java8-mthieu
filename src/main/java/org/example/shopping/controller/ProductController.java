@@ -1,8 +1,10 @@
 package org.example.shopping.controller;
 
+import org.example.shopping.entity.Category;
 import org.example.shopping.entity.Products;
 import org.example.shopping.model.ProductRequest;
 import org.example.shopping.model.ProductResponse;
+import org.example.shopping.service.CategoryService;
 import org.example.shopping.service.ProductService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -20,14 +22,16 @@ import java.util.stream.Collectors;
 public class ProductController {
 
     private final ProductService productService;
+    private final CategoryService categoryService;
 
     /**
      * Khởi tạo controller với tầng nghiệp vụ sản phẩm.
      *
      * @param productService service xử lý nghiệp vụ sản phẩm
      */
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, CategoryService categoryService) {
         this.productService = productService;
+        this.categoryService = categoryService;
     }
 
     @GetMapping
@@ -117,6 +121,14 @@ public class ProductController {
         product.setPrice(request.getPrice());
         product.setQuantity(request.getQuantity());
 
+        if (request.getCategoryId() != null) {
+            Category category = categoryService.findById(request.getCategoryId());
+            if (category == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không tìm thấy danh mục");
+            }
+            product.setCategory(category);
+        }
+
         productService.save(product);
     }
 
@@ -154,6 +166,16 @@ public class ProductController {
         product.setName(request.getName());
         product.setPrice(request.getPrice());
         product.setQuantity(request.getQuantity());
+
+        if (request.getCategoryId() != null) {
+            Category category = categoryService.findById(request.getCategoryId());
+            if (category == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không tìm thấy danh mục");
+            }
+            product.setCategory(category);
+        } else {
+            product.setCategory(existingProduct.getCategory());
+        }
 
         productService.update(id, product);
     }
@@ -193,6 +215,10 @@ public class ProductController {
         response.setName(product.getName());
         response.setPrice(product.getPrice());
         response.setQuantity(product.getQuantity());
+        if (product.getCategory() != null) {
+            response.setCategoryId(product.getCategory().getId());
+            response.setCategoryName(product.getCategory().getName());
+        }
 
         return response;
     }

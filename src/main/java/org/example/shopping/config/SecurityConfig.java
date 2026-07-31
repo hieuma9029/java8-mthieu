@@ -83,6 +83,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .antMatchers("/auth/login", "/auth/logout", "/auth/csrf").permitAll()
                         .antMatchers(HttpMethod.GET, "/products/**").permitAll()
+                        .antMatchers(HttpMethod.GET, "/categories/**").permitAll()
                         .antMatchers(HttpMethod.GET, "/orders/**").authenticated()
                         .antMatchers(HttpMethod.POST, "/orders/checkout").permitAll()
                         .antMatchers(HttpMethod.POST, "/cart/**").permitAll()
@@ -94,6 +95,9 @@ public class SecurityConfig {
                         .antMatchers(HttpMethod.POST, "/products/**").hasRole("ADMIN")
                         .antMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
                         .antMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
+                        .antMatchers(HttpMethod.POST, "/categories/**").hasRole("ADMIN")
+                        .antMatchers(HttpMethod.PUT, "/categories/**").hasRole("ADMIN")
+                        .antMatchers(HttpMethod.DELETE, "/categories/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptions -> exceptions

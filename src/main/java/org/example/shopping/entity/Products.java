@@ -49,6 +49,11 @@ public class Products extends BaseEntity {
     @Column(nullable = false)
     private Integer quantity;
 
+    /** Danh mục mà sản phẩm đang thuộc về. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
     public Integer getId() {
         return id;
     }
@@ -95,5 +100,13 @@ public class Products extends BaseEntity {
 
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 }

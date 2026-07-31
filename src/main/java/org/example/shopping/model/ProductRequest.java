@@ -24,6 +24,8 @@ public class ProductRequest {
     @Min(value = 0, message = "Số lượng phải là số không âm")
     private Integer quantity;
 
+    private Integer categoryId;
+
     /**
      * Các getter/setter bên dưới lần lượt đọc hoặc gán code, name và price
      * của yêu cầu tạo/cập nhật sản phẩm. Tham số của mỗi setter là giá trị mới
@@ -59,5 +61,13 @@ public class ProductRequest {
 
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
+    }
+
+    public Integer getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Integer categoryId) {
+        this.categoryId = categoryId;
     }
 }

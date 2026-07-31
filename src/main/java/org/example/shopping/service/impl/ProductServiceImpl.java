@@ -96,6 +96,7 @@ public class ProductServiceImpl extends BaseServiceImpl<Products, Integer, Produ
             oldProduct.setPrice(products.getPrice());
             oldProduct.setQuantity(products.getQuantity());
             oldProduct.setImage(products.getImage());
+            oldProduct.setCategory(products.getCategory());
 
             oldProduct.setUpdatedAt(LocalDateTime.now());
 

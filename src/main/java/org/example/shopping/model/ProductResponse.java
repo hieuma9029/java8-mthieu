@@ -15,6 +15,10 @@ public class ProductResponse {
 
     private Integer quantity;
 
+    private Integer categoryId;
+
+    private String categoryName;
+
     /**
      * Các getter/setter bên dưới lần lượt đọc hoặc gán id, code, name và price
      * của DTO phản hồi. Tham số của mỗi setter là giá trị mới cho thuộc tính có
@@ -58,5 +62,21 @@ public class ProductResponse {
 
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
+    }
+
+    public Integer getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Integer categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
     }
 }

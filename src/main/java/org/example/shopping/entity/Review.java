@@ -21,6 +21,10 @@ public class Review extends BaseEntity {
     @Column(nullable = false)
     private Integer rating;
 
+    /** Nội dung bình luận do người dùng gửi. */
+    @Column(length = 2000)
+    private String comment;
+
     /** Thời điểm đánh giá được tạo. */
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -54,6 +58,14 @@ public class Review extends BaseEntity {
 
     public void setRating(Integer rating) {
         this.rating = rating;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
     public LocalDateTime getCreatedAt() {

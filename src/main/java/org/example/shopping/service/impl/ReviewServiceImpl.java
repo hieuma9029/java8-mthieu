@@ -89,16 +89,31 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         Review existingReview = reviewRepository.findByProductsAndOrdersAndAccount(product, order, account);
+        Review review;
+        
         if (existingReview != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bạn đã đánh giá sản phẩm này cho đơn hàng này");
+            // Cập nhật review đã tồn tại
+            review = existingReview;
+            if (request.getRating() != null) {
+                review.setRating(request.getRating());
+            }
+            if (request.getComment() != null) {
+                review.setComment(request.getComment().trim());
+            }
+        } else {
+            // Tạo review mới
+            review = new Review();
+            review.setProducts(product);
+            review.setOrders(order);
+            review.setAccount(account);
+            if (request.getRating() != null) {
+                review.setRating(request.getRating());
+            }
+            if (request.getComment() != null) {
+                review.setComment(request.getComment().trim());
+            }
+            review.setCreatedAt(LocalDateTime.now());
         }
-
-        Review review = new Review();
-        review.setProducts(product);
-        review.setOrders(order);
-        review.setAccount(account);
-        review.setRating(request.getRating());
-        review.setCreatedAt(LocalDateTime.now());
 
         Review saved = reviewRepository.save(review);
         return toResponse(saved);
@@ -152,6 +167,7 @@ public class ReviewServiceImpl implements ReviewService {
             if (userReview != null) {
                 response.setId(userReview.getId());
                 response.setRating(userReview.getRating());
+                response.setComment(userReview.getComment());
                 response.setCreatedAt(userReview.getCreatedAt());
             } else {
                 response.setRating(0);
@@ -180,6 +196,7 @@ public class ReviewServiceImpl implements ReviewService {
         ReviewResponse response = new ReviewResponse();
         response.setId(review.getId());
         response.setRating(review.getRating());
+        response.setComment(review.getComment());
         response.setCreatedAt(review.getCreatedAt());
         response.setUserName(review.getAccount() != null ? review.getAccount().getUserName() : null);
         return response;

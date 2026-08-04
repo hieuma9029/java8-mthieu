@@ -2,6 +2,7 @@ package org.example.shopping.service.impl;
 
 import org.example.shopping.entity.Accounts;
 import org.example.shopping.model.LoginRequest;
+import org.example.shopping.model.RegisterRequest;
 import org.example.shopping.repository.AccountRepository;
 import org.example.shopping.service.AccountService;
 import org.example.shopping.service.AuthService;
@@ -11,6 +12,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,17 +30,20 @@ public class AuthServiceImpl implements AuthService {
     private final AccountRepository accountRepository;
     private final AccountService accountService;
     private final CartServiceImpl cartService;
+    private final PasswordEncoder passwordEncoder;
     private final javax.servlet.http.HttpSession httpSession;
 
     public AuthServiceImpl(AuthenticationManager authenticationManager,
                            AccountRepository accountRepository,
                            AccountService accountService,
                            CartServiceImpl cartService,
+                           PasswordEncoder passwordEncoder,
                            javax.servlet.http.HttpSession httpSession) {
         this.authenticationManager = authenticationManager;
         this.accountRepository = accountRepository;
         this.accountService = accountService;
         this.cartService = cartService;
+        this.passwordEncoder = passwordEncoder;
         this.httpSession = httpSession;
     }
 
@@ -69,6 +74,31 @@ public class AuthServiceImpl implements AuthService {
             return ResponseEntity.status(401)
                     .body(buildErrorResponse("Tên đăng nhập hoặc mật khẩu không đúng"));
         }
+    }
+
+    @Override
+    public ResponseEntity<Map<String, Object>> register(RegisterRequest request) {
+        if (request == null) {
+            return ResponseEntity.badRequest().body(buildErrorResponse("Dữ liệu đăng ký không hợp lệ"));
+        }
+
+        Accounts existing = accountRepository.findByUserNameAndIsDeleteFalse(request.getUserName());
+        if (existing != null) {
+            return ResponseEntity.status(409).body(buildErrorResponse("Tên đăng nhập đã tồn tại"));
+        }
+
+        Accounts account = new Accounts();
+        account.setUserName(request.getUserName());
+        account.setEncryptedPassword(passwordEncoder.encode(request.getPassword()));
+        account.setUserRole("ROLE_USER");
+        account.setActive(true);
+        account.setName(request.getName());
+        account.setEmail(request.getEmail());
+        account.setPhone(request.getPhone());
+        account.setAddress(request.getAddress());
+        accountService.save(account);
+
+        return ResponseEntity.status(201).body(buildSuccessResponse(account));
     }
 
     @Override

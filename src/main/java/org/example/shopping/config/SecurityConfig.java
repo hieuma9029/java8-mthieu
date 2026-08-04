@@ -81,7 +81,7 @@ public class SecurityConfig {
                 .logout().disable()
                 // Khai báo quyền truy cập cho từng nhóm đường dẫn.
                 .authorizeHttpRequests(authorize -> authorize
-                        .antMatchers("/auth/login", "/auth/logout", "/auth/csrf").permitAll()
+                        .antMatchers("/auth/login", "/auth/register", "/auth/logout", "/auth/csrf").permitAll()
                         .antMatchers(HttpMethod.GET, "/products/**").permitAll()
                         .antMatchers(HttpMethod.GET, "/categories/**").permitAll()
                         .antMatchers(HttpMethod.GET, "/reviews/products/**").permitAll()

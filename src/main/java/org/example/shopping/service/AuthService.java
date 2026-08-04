@@ -1,6 +1,7 @@
 package org.example.shopping.service;
 
 import org.example.shopping.model.LoginRequest;
+import org.example.shopping.model.RegisterRequest;
 import org.springframework.http.ResponseEntity;
 
 import javax.servlet.http.HttpServletRequest;
@@ -14,6 +15,9 @@ public interface AuthService {
 
     /** Xác thực người dùng bằng username và password. */
     ResponseEntity<Map<String, Object>> login(LoginRequest request);
+
+    /** Tạo tài khoản mới cho người dùng. */
+    ResponseEntity<Map<String, Object>> register(RegisterRequest request);
 
     /** Đăng xuất người dùng khỏi phiên hiện tại. */
     ResponseEntity<Map<String, Object>> logout(HttpServletRequest request, HttpServletResponse response);

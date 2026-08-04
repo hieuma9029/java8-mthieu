@@ -1,6 +1,7 @@
 package org.example.shopping.controller;
 
 import org.example.shopping.model.LoginRequest;
+import org.example.shopping.model.RegisterRequest;
 import org.example.shopping.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
@@ -35,6 +36,17 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
+    }
+
+    /**
+     * Đăng ký tài khoản mới cho người dùng.
+     *
+     * @param request thông tin đăng ký từ client
+     * @return ResponseEntity chứa success và dữ liệu user sau khi tạo tài khoản
+     */
+    @PostMapping("/register")
+    public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody RegisterRequest request) {
+        return authService.register(request);
     }
 
     /**

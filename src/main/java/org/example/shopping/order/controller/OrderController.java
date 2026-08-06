@@ -60,6 +60,7 @@ public class OrderController {
     }
 
     @GetMapping("/admin/stats")
+    /** Lấy thống kê doanh thu và sản phẩm bán chạy cho màn hình quản trị. */
     public ResponseEntity<AdminOrderStatsResponse> getAdminOrderStats() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {

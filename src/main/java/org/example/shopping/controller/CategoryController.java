@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/categories")
+/** Controller REST xử lý các thao tác quản lý danh mục sản phẩm. */
 public class CategoryController {
 
     private final CategoryService categoryService;
@@ -28,11 +29,13 @@ public class CategoryController {
     }
 
     @GetMapping
+    /** Lấy toàn bộ danh mục hiện có để hiển thị cho frontend. */
     public List<CategoryResponse> getAllCategories() {
         return categoryService.findAll().stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     @GetMapping("/page")
+    /** Lấy danh mục theo trang để tránh tải quá nhiều dữ liệu cùng lúc. */
     public PaginationResult<CategoryResponse> getCategoriesByPage(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
@@ -49,6 +52,7 @@ public class CategoryController {
     }
 
     @GetMapping("/{id}")
+    /** Lấy thông tin chi tiết một danh mục theo mã định danh. */
     public CategoryResponse getCategoryById(@PathVariable Integer id) {
         Category category = categoryService.findById(id);
         if (category == null) {
@@ -58,6 +62,7 @@ public class CategoryController {
     }
 
     @PostMapping
+    /** Tạo mới một danh mục sau khi kiểm tra tên danh mục chưa bị trùng. */
     public void saveCategory(@Valid @RequestBody CategoryRequest request) {
         if (categoryService.existsByName(request.getName())) {
             throw new RuntimeException("Tên danh mục đã tồn tại.");
@@ -69,6 +74,7 @@ public class CategoryController {
     }
 
     @PutMapping("/{id}")
+    /** Cập nhật tên danh mục hiện có và kiểm tra tính duy nhất trước khi lưu. */
     public void updateCategory(@PathVariable Integer id, @Valid @RequestBody CategoryRequest request) {
         Category existingCategory = categoryService.findById(id);
         if (existingCategory == null) {
@@ -85,15 +91,18 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
+    /** Xóa mềm danh mục để dữ liệu vẫn còn lưu trong hệ thống nhưng không hiển thị nữa. */
     public void deleteCategory(@PathVariable Integer id) {
         categoryService.delete(id);
     }
 
     @PutMapping("/{id}/restore")
+    /** Khôi phục danh mục đã bị xóa mềm trước đó. */
     public void restoreCategory(@PathVariable Integer id) {
         categoryService.restore(id);
     }
 
+    /** Chuyển entity danh mục sang DTO dùng cho API response. */
     private CategoryResponse toResponse(Category category) {
         CategoryResponse response = new CategoryResponse();
         response.setId(category.getId());

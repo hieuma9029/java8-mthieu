@@ -86,6 +86,7 @@ public class OrderCheckoutService {
         return savedOrder;
     }
 
+    /** Tạo đối tượng đơn hàng mới từ thông tin checkout của khách hàng. */
     private Orders buildOrder(CheckoutRequest request) {
         Orders order = new Orders();
         order.setCustomerName(request.getCustomerName());
@@ -100,6 +101,7 @@ public class OrderCheckoutService {
         return order;
     }
 
+    /** Tính tổng giá trị đơn hàng từ các dòng sản phẩm trong giỏ. */
     private BigDecimal calculateTotalAmount(List<CartItems> cartItems) {
         BigDecimal totalAmount = BigDecimal.ZERO;
         for (CartItems cartItem : cartItems) {
@@ -109,6 +111,7 @@ public class OrderCheckoutService {
         return totalAmount;
     }
 
+    /** Kiểm tra dữ liệu sản phẩm trong giỏ trước khi tạo đơn hàng. */
     private void validateCartItems(List<CartItems> cartItems) {
         for (CartItems cartItem : cartItems) {
             if (cartItem == null || cartItem.getQuantity() == null) {
@@ -120,6 +123,7 @@ public class OrderCheckoutService {
         }
     }
 
+    /** Chuyển các dòng sản phẩm trong giỏ thành các dòng chi tiết của đơn hàng. */
     private void createOrderDetails(Orders savedOrder, List<CartItems> cartItems) {
         for (CartItems cartItem : cartItems) {
             Products product = getAvailableProduct(cartItem.getProduct().getId());
@@ -135,6 +139,7 @@ public class OrderCheckoutService {
         }
     }
 
+    /** Lấy sản phẩm còn hoạt động để đảm bảo đơn hàng chỉ dùng dữ liệu hợp lệ. */
     private Products getAvailableProduct(Integer productId) {
         Products product = productRepository.findById(productId).orElse(null);
         if (product == null || Boolean.TRUE.equals(product.getIsDelete())) {

@@ -55,6 +55,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
+    /** Gửi hoặc cập nhật review cho một sản phẩm trong đơn hàng đã giao thành công. */
     public ReviewResponse submitReview(Integer productId, Integer orderId, String username, ReviewRequest request) {
         Accounts account = accountRepository.findByUserNameAndIsDeleteFalse(username);
         if (account == null) {

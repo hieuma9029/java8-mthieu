@@ -5,6 +5,8 @@ import org.example.shopping.entity.OrderDetails;
 import org.example.shopping.entity.Orders;
 import org.example.shopping.entity.OrderStatus;
 import org.example.shopping.entity.Products;
+import org.example.shopping.order.model.AdminOrderStatsResponse;
+import org.example.shopping.order.model.BestSellingProductResponse;
 import org.example.shopping.order.model.CheckoutRequest;
 import org.example.shopping.order.model.OrderDetailsResponse;
 import org.example.shopping.order.model.OrderItemResponse;
@@ -15,8 +17,10 @@ import org.example.shopping.order.repository.OrderDetailRepository;
 import org.example.shopping.repository.AccountRepository;
 import org.example.shopping.repository.ProductRepository;
 import org.example.shopping.service.impl.BaseServiceImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import java.math.BigDecimal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -33,6 +37,8 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
  */
 public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepository> implements OrderService {
 
+    /** Repository đơn hàng để dùng các query thống kê. */
+    private final OrderRepository orderRepository;
     /** Lưu các dòng hàng đã được chốt vào đơn. */
     private final OrderDetailRepository orderDetailRepository;
     /** Repository sản phẩm để cập nhật tồn kho khi đơn được xác nhận. */
@@ -53,6 +59,7 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
                             OrderCheckoutService orderCheckoutService,
                             AccountRepository accountRepository) {
         super(orderRepository);
+        this.orderRepository = orderRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.productRepository = productRepository;
         this.orderCheckoutService = orderCheckoutService;
@@ -274,6 +281,19 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
         response.setItems(items);
         response.setTotalAmount(order.getAmount());
         return response;
+    }
+
+    @Override
+    public AdminOrderStatsResponse getAdminStats() {
+        BigDecimal totalRevenue = orderRepository.sumAmountByStatusAndIsDeleteFalse(OrderStatus.DELIVERED);
+        long totalOrders = orderRepository.countByStatusAndIsDeleteFalse(OrderStatus.DELIVERED);
+        List<BestSellingProductResponse> topProducts = orderDetailRepository.findTopProductsByStatus(OrderStatus.DELIVERED, PageRequest.of(0, 10));
+
+        AdminOrderStatsResponse stats = new AdminOrderStatsResponse();
+        stats.setTotalRevenue(totalRevenue);
+        stats.setTotalOrders(totalOrders);
+        stats.setTopProducts(topProducts);
+        return stats;
     }
 
     @Override

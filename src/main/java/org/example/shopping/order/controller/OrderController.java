@@ -1,6 +1,7 @@
 package org.example.shopping.order.controller;
 
 import org.example.shopping.entity.Orders;
+import org.example.shopping.order.model.AdminOrderStatsResponse;
 import org.example.shopping.order.model.CheckoutRequest;
 import org.example.shopping.order.model.OrderDetailsResponse;
 import org.example.shopping.order.model.OrderMapper;
@@ -56,6 +57,17 @@ public class OrderController {
                 .map(OrderMapper::toResponse)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/admin/stats")
+    public ResponseEntity<AdminOrderStatsResponse> getAdminOrderStats() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Chưa đăng nhập");
+        }
+
+        AdminOrderStatsResponse stats = orderService.getAdminStats();
+        return ResponseEntity.ok(stats);
     }
 
     /**

@@ -85,6 +85,7 @@ public class SecurityConfig {
                         .antMatchers(HttpMethod.GET, "/products/**").permitAll()
                         .antMatchers(HttpMethod.GET, "/categories/**").permitAll()
                         .antMatchers(HttpMethod.GET, "/reviews/products/**").permitAll()
+                        .antMatchers("/orders/admin/**").hasRole("ADMIN")
                         .antMatchers(HttpMethod.GET, "/orders/**").authenticated()
                         .antMatchers(HttpMethod.POST, "/orders/checkout").permitAll()
                         .antMatchers(HttpMethod.POST, "/cart/**").permitAll()

@@ -1,6 +1,7 @@
 package org.example.shopping.order.service;
 
 import org.example.shopping.entity.Orders;
+import org.example.shopping.order.model.AdminOrderStatsResponse;
 import org.example.shopping.order.model.CheckoutRequest;
 import org.example.shopping.order.model.OrderDetailsResponse;
 import org.example.shopping.order.model.OrderStatusRequest;
@@ -28,4 +29,7 @@ public interface OrderService extends BaseService<Orders, Integer> {
 
     /** Lấy đơn hàng nếu nó thuộc tài khoản đang đăng nhập, hoặc ném lỗi nếu không. */
     Orders findOwnedByIdOrThrow(Integer orderId, String username);
+
+    /** Lấy số liệu thống kê doanh thu và sản phẩm bán chạy cho admin. */
+    AdminOrderStatsResponse getAdminStats();
 }

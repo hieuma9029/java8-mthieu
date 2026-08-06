@@ -1,0 +1,180 @@
+﻿diff --git a/src/main/java/org/example/shopping/config/SecurityConfig.java b/src/main/java/org/example/shopping/config/SecurityConfig.java
+index 02e51c8..5e70513 100644
+--- a/src/main/java/org/example/shopping/config/SecurityConfig.java
++++ b/src/main/java/org/example/shopping/config/SecurityConfig.java
+@@ -85,6 +85,7 @@ public class SecurityConfig {
+                         .antMatchers(HttpMethod.GET, "/products/**").permitAll()
+                         .antMatchers(HttpMethod.GET, "/categories/**").permitAll()
+                         .antMatchers(HttpMethod.GET, "/reviews/products/**").permitAll()
++                        .antMatchers("/orders/admin/**").hasRole("ADMIN")
+                         .antMatchers(HttpMethod.GET, "/orders/**").authenticated()
+                         .antMatchers(HttpMethod.POST, "/orders/checkout").permitAll()
+                         .antMatchers(HttpMethod.POST, "/cart/**").permitAll()
+diff --git a/src/main/java/org/example/shopping/order/controller/OrderController.java b/src/main/java/org/example/shopping/order/controller/OrderController.java
+index 11ec01d..c93e55d 100644
+--- a/src/main/java/org/example/shopping/order/controller/OrderController.java
++++ b/src/main/java/org/example/shopping/order/controller/OrderController.java
+@@ -1,6 +1,7 @@
+ package org.example.shopping.order.controller;
+ 
+ import org.example.shopping.entity.Orders;
++import org.example.shopping.order.model.AdminOrderStatsResponse;
+ import org.example.shopping.order.model.CheckoutRequest;
+ import org.example.shopping.order.model.OrderDetailsResponse;
+ import org.example.shopping.order.model.OrderMapper;
+@@ -58,6 +59,17 @@ public class OrderController {
+         return ResponseEntity.ok(responses);
+     }
+ 
++    @GetMapping("/admin/stats")
++    public ResponseEntity<AdminOrderStatsResponse> getAdminOrderStats() {
++        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
++        if (authentication == null || !authentication.isAuthenticated()) {
++            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "ChÆ°a Ä‘Äƒng nháº­p");
++        }
++
++        AdminOrderStatsResponse stats = orderService.getAdminStats();
++        return ResponseEntity.ok(stats);
++    }
++
+     /**
+      * GET /orders/{id}: láº¥y chi tiáº¿t má»™t Ä‘Æ¡n hĂ ng theo mĂ£ Ä‘á»‹nh danh.
+      *
+diff --git a/src/main/java/org/example/shopping/order/repository/OrderDetailRepository.java b/src/main/java/org/example/shopping/order/repository/OrderDetailRepository.java
+index ea49fe3..4b9308e 100644
+--- a/src/main/java/org/example/shopping/order/repository/OrderDetailRepository.java
++++ b/src/main/java/org/example/shopping/order/repository/OrderDetailRepository.java
+@@ -1,8 +1,12 @@
+ package org.example.shopping.order.repository;
+ 
+ import org.example.shopping.entity.OrderDetails;
++import org.example.shopping.entity.OrderStatus;
+ import org.example.shopping.entity.Orders;
++import org.example.shopping.order.model.BestSellingProductResponse;
+ import org.example.shopping.repository.BaseRepository;
++import org.springframework.data.domain.Pageable;
++import org.springframework.data.jpa.repository.Query;
+ 
+ import java.util.List;
+ 
+@@ -17,4 +21,12 @@ import java.util.List;
+  */
+ public interface OrderDetailRepository extends BaseRepository<OrderDetails, Integer> {
+     List<OrderDetails> findByOrders(Orders orders);
++
++    @Query("SELECT new org.example.shopping.order.model.BestSellingProductResponse(" +
++            "od.products.id, od.products.name, SUM(od.quantity), COALESCE(SUM(od.amount), 0)) " +
++            "FROM OrderDetails od " +
++            "WHERE od.orders.isDelete = false AND od.orders.status = :status " +
++            "GROUP BY od.products.id, od.products.name " +
++            "ORDER BY SUM(od.quantity) DESC")
++    List<BestSellingProductResponse> findTopProductsByStatus(OrderStatus status, Pageable pageable);
+ }
+diff --git a/src/main/java/org/example/shopping/order/repository/OrderRepository.java b/src/main/java/org/example/shopping/order/repository/OrderRepository.java
+index 92ce6c2..aac8414 100644
+--- a/src/main/java/org/example/shopping/order/repository/OrderRepository.java
++++ b/src/main/java/org/example/shopping/order/repository/OrderRepository.java
+@@ -1,9 +1,12 @@
+ package org.example.shopping.order.repository;
+ 
+ import org.example.shopping.entity.Accounts;
++import org.example.shopping.entity.OrderStatus;
+ import org.example.shopping.entity.Orders;
+ import org.example.shopping.repository.BaseRepository;
++import org.springframework.data.jpa.repository.Query;
+ 
++import java.math.BigDecimal;
+ import java.util.List;
+ 
+ /**
+@@ -17,4 +20,9 @@ import java.util.List;
+  */
+ public interface OrderRepository extends BaseRepository<Orders, Integer> {
+     List<Orders> findByAccountAndIsDeleteFalse(Accounts account);
++
++    @Query("SELECT COALESCE(SUM(o.amount), 0) FROM Orders o WHERE o.isDelete = false AND o.status = :status")
++    BigDecimal sumAmountByStatusAndIsDeleteFalse(OrderStatus status);
++
++    long countByStatusAndIsDeleteFalse(OrderStatus status);
+ }
+diff --git a/src/main/java/org/example/shopping/order/service/OrderService.java b/src/main/java/org/example/shopping/order/service/OrderService.java
+index d0dcb53..3e29077 100644
+--- a/src/main/java/org/example/shopping/order/service/OrderService.java
++++ b/src/main/java/org/example/shopping/order/service/OrderService.java
+@@ -1,6 +1,7 @@
+ package org.example.shopping.order.service;
+ 
+ import org.example.shopping.entity.Orders;
++import org.example.shopping.order.model.AdminOrderStatsResponse;
+ import org.example.shopping.order.model.CheckoutRequest;
+ import org.example.shopping.order.model.OrderDetailsResponse;
+ import org.example.shopping.order.model.OrderStatusRequest;
+@@ -28,4 +29,7 @@ public interface OrderService extends BaseService<Orders, Integer> {
+ 
+     /** Láº¥y Ä‘Æ¡n hĂ ng náº¿u nĂ³ thuá»™c tĂ i khoáº£n Ä‘ang Ä‘Äƒng nháº­p, hoáº·c nĂ©m lá»—i náº¿u khĂ´ng. */
+     Orders findOwnedByIdOrThrow(Integer orderId, String username);
++
++    /** Láº¥y sá»‘ liá»‡u thá»‘ng kĂª doanh thu vĂ  sáº£n pháº©m bĂ¡n cháº¡y cho admin. */
++    AdminOrderStatsResponse getAdminStats();
+ }
+diff --git a/src/main/java/org/example/shopping/order/service/impl/OrderServiceImpl.java b/src/main/java/org/example/shopping/order/service/impl/OrderServiceImpl.java
+index 75b3e30..ac9b33c 100644
+--- a/src/main/java/org/example/shopping/order/service/impl/OrderServiceImpl.java
++++ b/src/main/java/org/example/shopping/order/service/impl/OrderServiceImpl.java
+@@ -5,6 +5,8 @@ import org.example.shopping.entity.OrderDetails;
+ import org.example.shopping.entity.Orders;
+ import org.example.shopping.entity.OrderStatus;
+ import org.example.shopping.entity.Products;
++import org.example.shopping.order.model.AdminOrderStatsResponse;
++import org.example.shopping.order.model.BestSellingProductResponse;
+ import org.example.shopping.order.model.CheckoutRequest;
+ import org.example.shopping.order.model.OrderDetailsResponse;
+ import org.example.shopping.order.model.OrderItemResponse;
+@@ -15,8 +17,10 @@ import org.example.shopping.order.repository.OrderDetailRepository;
+ import org.example.shopping.repository.AccountRepository;
+ import org.example.shopping.repository.ProductRepository;
+ import org.example.shopping.service.impl.BaseServiceImpl;
++import org.springframework.data.domain.PageRequest;
+ import org.springframework.http.HttpStatus;
+ import org.springframework.stereotype.Service;
++import java.math.BigDecimal;
+ import org.springframework.transaction.annotation.Transactional;
+ import org.springframework.web.server.ResponseStatusException;
+ 
+@@ -33,6 +37,8 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
+  */
+ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepository> implements OrderService {
+ 
++    /** Repository Ä‘Æ¡n hĂ ng Ä‘á»ƒ dĂ¹ng cĂ¡c query thá»‘ng kĂª. */
++    private final OrderRepository orderRepository;
+     /** LÆ°u cĂ¡c dĂ²ng hĂ ng Ä‘Ă£ Ä‘Æ°á»£c chá»‘t vĂ o Ä‘Æ¡n. */
+     private final OrderDetailRepository orderDetailRepository;
+     /** Repository sáº£n pháº©m Ä‘á»ƒ cáº­p nháº­t tá»“n kho khi Ä‘Æ¡n Ä‘Æ°á»£c xĂ¡c nháº­n. */
+@@ -53,6 +59,7 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
+                             OrderCheckoutService orderCheckoutService,
+                             AccountRepository accountRepository) {
+         super(orderRepository);
++        this.orderRepository = orderRepository;
+         this.orderDetailRepository = orderDetailRepository;
+         this.productRepository = productRepository;
+         this.orderCheckoutService = orderCheckoutService;
+@@ -276,6 +283,19 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
+         return response;
+     }
+ 
++    @Override
++    public AdminOrderStatsResponse getAdminStats() {
++        BigDecimal totalRevenue = orderRepository.sumAmountByStatusAndIsDeleteFalse(OrderStatus.DELIVERED);
++        long totalOrders = orderRepository.countByStatusAndIsDeleteFalse(OrderStatus.DELIVERED);
++        List<BestSellingProductResponse> topProducts = orderDetailRepository.findTopProductsByStatus(OrderStatus.DELIVERED, PageRequest.of(0, 10));
++
++        AdminOrderStatsResponse stats = new AdminOrderStatsResponse();
++        stats.setTotalRevenue(totalRevenue);
++        stats.setTotalOrders(totalOrders);
++        stats.setTopProducts(topProducts);
++        return stats;
++    }
++
+     @Override
+     /**
+      * Sao chĂ©p dá»¯ liá»‡u cáº­p nháº­t tá»« Ä‘á»‘i tÆ°á»£ng nguá»“n vĂ o Ä‘Æ¡n hĂ ng hiá»‡n cĂ³.

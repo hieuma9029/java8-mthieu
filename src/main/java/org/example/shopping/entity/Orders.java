@@ -19,6 +19,11 @@ public class Orders extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    /** Phiên bản dùng để ngăn hai request cập nhật cùng một đơn đồng thời. */
+    @Version
+    @Column(name = "version", nullable = false)
+    private Integer version;
+
     /** Mã/số hiển thị của đơn hàng. */
     @Column(name = "order_num")
     private Integer orderNum;
@@ -60,6 +65,14 @@ public class Orders extends BaseEntity {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 
     public Integer getOrderNum() {

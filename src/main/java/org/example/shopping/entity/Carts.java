@@ -21,6 +21,10 @@ public class Carts extends BaseEntity {
     @Column(name = "session_id", unique = true)
     private String sessionId;
 
+    /** Thời điểm hết hạn của giỏ hàng anonymous; giỏ của tài khoản không dùng trường này. */
+    @Column(name = "expires_at")
+    private java.time.LocalDateTime expiresAt;
+
     public Integer getId() {
         return id;
     }
@@ -43,5 +47,13 @@ public class Carts extends BaseEntity {
 
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
+    }
+
+    public java.time.LocalDateTime getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(java.time.LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
     }
 }

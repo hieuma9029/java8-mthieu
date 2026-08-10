@@ -1,4 +1,4 @@
-package org.example.shopping.order.model;
+package org.example.shopping.model;
 
 /**
  * DTO trả về thống kê đánh giá của một sản phẩm.

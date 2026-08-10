@@ -1,4 +1,4 @@
-package org.example.shopping.order.model;
+package org.example.shopping.model;
 
 import java.time.LocalDateTime;
 import java.math.BigDecimal;

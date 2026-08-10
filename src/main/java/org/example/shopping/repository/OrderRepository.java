@@ -1,4 +1,4 @@
-package org.example.shopping.order.repository;
+package org.example.shopping.repository;
 
 import org.example.shopping.entity.Accounts;
 import org.example.shopping.entity.OrderStatus;

@@ -1,10 +1,11 @@
-package org.example.shopping.order.service;
+package org.example.shopping.service;
 
+import org.example.shopping.service.BaseService;
 import org.example.shopping.entity.Orders;
-import org.example.shopping.order.model.AdminOrderStatsResponse;
-import org.example.shopping.order.model.CheckoutRequest;
-import org.example.shopping.order.model.OrderDetailsResponse;
-import org.example.shopping.order.model.OrderStatusRequest;
+import org.example.shopping.model.AdminOrderStatsResponse;
+import org.example.shopping.model.CheckoutRequest;
+import org.example.shopping.model.OrderDetailsResponse;
+import org.example.shopping.model.OrderStatusRequest;
 import org.example.shopping.service.BaseService;
 
 import java.util.List;

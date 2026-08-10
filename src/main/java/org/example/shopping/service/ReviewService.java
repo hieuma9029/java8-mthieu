@@ -1,9 +1,9 @@
 package org.example.shopping.service;
 
-import org.example.shopping.order.model.OrderReviewResponse;
-import org.example.shopping.order.model.ReviewRequest;
-import org.example.shopping.order.model.ReviewResponse;
-import org.example.shopping.order.model.ReviewStatsResponse;
+import org.example.shopping.model.OrderReviewResponse;
+import org.example.shopping.model.ReviewRequest;
+import org.example.shopping.model.ReviewResponse;
+import org.example.shopping.model.ReviewStatsResponse;
 
 import java.util.List;
 

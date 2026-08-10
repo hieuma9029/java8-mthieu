@@ -1,5 +1,6 @@
-package org.example.shopping.order.service;
+package org.example.shopping.service;
 
+import org.example.shopping.service.BaseService;
 import org.example.shopping.entity.OrderDetails;
 import org.example.shopping.service.BaseService;
 

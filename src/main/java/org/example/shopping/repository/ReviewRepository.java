@@ -4,7 +4,6 @@ import org.example.shopping.entity.Accounts;
 import org.example.shopping.entity.Products;
 import org.example.shopping.entity.Review;
 import org.example.shopping.entity.Orders;
-import org.example.shopping.repository.BaseRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 

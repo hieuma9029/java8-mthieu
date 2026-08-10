@@ -1,9 +1,9 @@
 package org.example.shopping.controller;
 
-import org.example.shopping.order.model.OrderReviewResponse;
-import org.example.shopping.order.model.ReviewRequest;
-import org.example.shopping.order.model.ReviewResponse;
-import org.example.shopping.order.model.ReviewStatsResponse;
+import org.example.shopping.model.OrderReviewResponse;
+import org.example.shopping.model.ReviewRequest;
+import org.example.shopping.model.ReviewResponse;
+import org.example.shopping.model.ReviewStatsResponse;
 import org.example.shopping.service.ReviewService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

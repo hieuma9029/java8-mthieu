@@ -1,13 +1,13 @@
-package org.example.shopping.order.controller;
+package org.example.shopping.controller;
 
 import org.example.shopping.entity.Orders;
-import org.example.shopping.order.model.AdminOrderStatsResponse;
-import org.example.shopping.order.model.CheckoutRequest;
-import org.example.shopping.order.model.OrderDetailsResponse;
-import org.example.shopping.order.model.OrderMapper;
-import org.example.shopping.order.model.OrderResponse;
-import org.example.shopping.order.model.OrderStatusRequest;
-import org.example.shopping.order.service.OrderService;
+import org.example.shopping.model.AdminOrderStatsResponse;
+import org.example.shopping.model.CheckoutRequest;
+import org.example.shopping.model.OrderDetailsResponse;
+import org.example.shopping.model.OrderMapper;
+import org.example.shopping.model.OrderResponse;
+import org.example.shopping.model.OrderStatusRequest;
+import org.example.shopping.service.OrderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

@@ -4,7 +4,6 @@ import org.example.shopping.model.LoginRequest;
 import org.example.shopping.model.RegisterRequest;
 import org.example.shopping.service.AuthService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -47,18 +46,6 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody RegisterRequest request) {
         return authService.register(request);
-    }
-
-    /**
-     * Trả về CSRF token và kích hoạt việc ghi token vào cookie XSRF-TOKEN.
-     * Frontend phải gửi token này trong header X-XSRF-TOKEN khi gọi API thay đổi dữ liệu.
-     *
-     * @param token token do Spring Security tạo cho phiên hiện tại
-     * @return CSRF token dùng cho các request ghi dữ liệu
-     */
-    @GetMapping("/csrf")
-    public CsrfToken csrf(CsrfToken token) {
-        return token;
     }
 
     /**

@@ -8,9 +8,11 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.example.shopping.security.JwtAuthenticationFilter;
 import javax.servlet.http.HttpServletResponse;
 
 /** Cấu hình xác thực và phân quyền HTTP cho ứng dụng. */
@@ -18,14 +20,17 @@ import javax.servlet.http.HttpServletResponse;
 public class SecurityConfig {
     // Service tải thông tin người dùng từ cơ sở dữ liệu khi đăng nhập.
     private final UserDetailsServiceImpl userDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
      * Khởi tạo cấu hình với dịch vụ tải thông tin người dùng.
      *
      * @param userDetailsService dịch vụ truy xuất người dùng khi xác thực
      */
-    public SecurityConfig(UserDetailsServiceImpl userDetailsService) {
+    public SecurityConfig(UserDetailsServiceImpl userDetailsService,
+                          JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.userDetailsService = userDetailsService;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     /**
@@ -71,9 +76,12 @@ public class SecurityConfig {
             throws Exception {
         http
                 .cors().and()
-                // Dùng CSRF token vì xác thực được lưu trong session cookie.
-                // Frontend đọc cookie XSRF-TOKEN và gửi lại qua header X-XSRF-TOKEN.
-                .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and()
+            // JWT được gửi rõ ràng qua header nên không dùng cơ chế CSRF của session.
+            .csrf().disable()
+            // Không lưu Authentication vào HttpSession; JWT tự mang trạng thái xác thực.
+            .sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
                 // Đăng ký provider xác thực đã cấu hình ở trên.
                 .authenticationProvider(authenticationProvider)
                 // Tắt form login để sử dụng API JSON.
@@ -81,7 +89,7 @@ public class SecurityConfig {
                 .logout().disable()
                 // Khai báo quyền truy cập cho từng nhóm đường dẫn.
                 .authorizeHttpRequests(authorize -> authorize
-                        .antMatchers("/auth/login", "/auth/register", "/auth/logout", "/auth/csrf").permitAll()
+                        .antMatchers("/auth/login", "/auth/register", "/auth/logout").permitAll()
                         .antMatchers(HttpMethod.GET, "/products/**").permitAll()
                         .antMatchers(HttpMethod.GET, "/categories/**").permitAll()
                         .antMatchers(HttpMethod.GET, "/reviews/products/**").permitAll()
@@ -106,6 +114,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, authException) ->
                                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
                 );
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

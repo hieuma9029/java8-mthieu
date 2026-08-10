@@ -2,8 +2,10 @@ package org.example.shopping;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
 /** Điểm khởi động: tạo ApplicationContext và chạy web server Spring Boot. */
 public class ShoppingApplication {
     /**

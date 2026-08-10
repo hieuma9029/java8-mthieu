@@ -1,19 +1,20 @@
-package org.example.shopping.order.service.impl;
+package org.example.shopping.service.impl;
 
 import org.example.shopping.entity.Accounts;
 import org.example.shopping.entity.OrderDetails;
 import org.example.shopping.entity.Orders;
 import org.example.shopping.entity.OrderStatus;
 import org.example.shopping.entity.Products;
-import org.example.shopping.order.model.AdminOrderStatsResponse;
-import org.example.shopping.order.model.BestSellingProductResponse;
-import org.example.shopping.order.model.CheckoutRequest;
-import org.example.shopping.order.model.OrderDetailsResponse;
-import org.example.shopping.order.model.OrderItemResponse;
-import org.example.shopping.order.model.OrderStatusRequest;
-import org.example.shopping.order.repository.OrderRepository;
-import org.example.shopping.order.service.OrderService;
-import org.example.shopping.order.repository.OrderDetailRepository;
+import org.example.shopping.service.impl.BaseServiceImpl;
+import org.example.shopping.model.AdminOrderStatsResponse;
+import org.example.shopping.model.BestSellingProductResponse;
+import org.example.shopping.model.CheckoutRequest;
+import org.example.shopping.model.OrderDetailsResponse;
+import org.example.shopping.model.OrderItemResponse;
+import org.example.shopping.model.OrderStatusRequest;
+import org.example.shopping.repository.OrderRepository;
+import org.example.shopping.service.OrderService;
+import org.example.shopping.repository.OrderDetailRepository;
 import org.example.shopping.repository.AccountRepository;
 import org.example.shopping.repository.ProductRepository;
 import org.example.shopping.service.impl.BaseServiceImpl;
@@ -145,13 +146,15 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
 
     @Override
     /** Cập nhật trạng thái đơn hàng theo mã định danh và payload trạng thái mới. */
+    @Transactional
     public Orders updateStatus(Integer id, OrderStatusRequest request) {
         Orders order = repository.findById(id).orElseThrow(() ->
                 new ResponseStatusException(NOT_FOUND, "Không tìm thấy đơn hàng có id = " + id));
         if (request.getStatus() != null) {
             OrderStatus previousStatus = order.getStatus();
             validateTransition(previousStatus, request.getStatus());
-            // Nếu đơn hàng vừa xác nhận nhưng bị hủy thì hoàn lại tồn kho.
+            // Chỉ hoàn kho khi đơn đã trừ tồn ở trạng thái CONFIRMED và chuyển sang CANCELLED.
+            // Trạng thái CANCELLED đã bị validate chặn nên không thể hoàn kho lần thứ hai.
             if (previousStatus == OrderStatus.CONFIRMED && request.getStatus() == OrderStatus.CANCELLED) {
                 restoreProductQuantity(order);
             // Nếu đơn hàng đã nhận thành công mà khách trả lại thì cũng hoàn kho.
@@ -160,6 +163,7 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
             // Nếu đơn hàng chuyển sang trạng thái CONFIRMED thì trừ tồn kho tương ứng.
             } else if (previousStatus != OrderStatus.CONFIRMED
                     && request.getStatus() == OrderStatus.CONFIRMED) {
+                validateProductQuantity(order);
                 adjustProductQuantity(order);
             }
             order.setStatus(request.getStatus());
@@ -219,22 +223,39 @@ public class OrderServiceImpl extends BaseServiceImpl<Orders, Integer, OrderRepo
                 continue;
             }
             int newQuantity = product.getQuantity() - detail.getQuantity();
-            if (newQuantity < 0) {
-                newQuantity = 0;
-            }
             product.setQuantity(newQuantity);
             product.setUpdatedAt(LocalDateTime.now());
             productRepository.save(product);
         }
     }
 
+    /** Kiểm tra lại tồn kho tại thời điểm admin xác nhận đơn để tránh overselling. */
+    private void validateProductQuantity(Orders order) {
+        for (OrderDetails detail : orderDetailRepository.findByOrders(order)) {
+            Products product = detail.getProducts();
+            Integer orderQuantity = detail.getQuantity();
+            int currentStock = product == null || product.getQuantity() == null ? 0 : product.getQuantity();
+            if (product == null || orderQuantity == null || orderQuantity < 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Chi tiết đơn hàng không hợp lệ");
+            }
+            if (orderQuantity > currentStock) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Sản phẩm " + product.getName() + " không đủ tồn kho. Tồn kho hiện tại: "
+                                + currentStock + ", số lượng đặt: " + orderQuantity);
+            }
+        }
+    }
+
     private void restoreProductQuantity(Orders order) {
         for (OrderDetails detail : orderDetailRepository.findByOrders(order)) {
             Products product = detail.getProducts();
-            if (product == null) {
+            Integer orderQuantity = detail.getQuantity();
+            if (product == null || orderQuantity == null || orderQuantity < 0) {
                 continue;
             }
-            int newQuantity = product.getQuantity() + detail.getQuantity();
+            int currentStock = product.getQuantity() == null ? 0 : product.getQuantity();
+            int newQuantity = currentStock + orderQuantity;
             product.setQuantity(newQuantity);
             product.setUpdatedAt(LocalDateTime.now());
             productRepository.save(product);

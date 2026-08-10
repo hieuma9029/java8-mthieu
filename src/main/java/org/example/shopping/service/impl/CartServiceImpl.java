@@ -14,6 +14,8 @@ import org.example.shopping.repository.ProductRepository;
 import org.example.shopping.service.CartService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -38,18 +40,21 @@ public class CartServiceImpl implements CartService {
     /** Repository dùng để xác định tài khoản từ tên đăng nhập trong phiên. */
     private final AccountRepository accountRepository;
     private final HttpSession httpSession;
+    private final long guestCartExpirationDays;
 
     /** Khởi tạo service với các repository cần cho nghiệp vụ giỏ hàng. */
     public CartServiceImpl(CartRepository cartRepository,
                            CartItemRepository cartItemRepository,
                            ProductRepository productRepository,
                            AccountRepository accountRepository,
-                           HttpSession httpSession) {
+                           HttpSession httpSession,
+                           @Value("${app.cart.guest-expiration-days:7}") long guestCartExpirationDays) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
         this.accountRepository = accountRepository;
         this.httpSession = httpSession;
+        this.guestCartExpirationDays = guestCartExpirationDays;
     }
 
     @Override
@@ -213,6 +218,11 @@ public class CartServiceImpl implements CartService {
         String sessionCartId = (String) httpSession.getAttribute("CART_ID");
         if (sessionCartId != null) {
             Carts c = cartRepository.findBySessionId(sessionCartId);
+            if (c != null && c.getExpiresAt() != null
+                    && !c.getExpiresAt().isAfter(LocalDateTime.now())) {
+                httpSession.removeAttribute("CART_ID");
+                return null;
+            }
             if (c != null) return c;
         }
         return null;
@@ -228,9 +238,10 @@ public class CartServiceImpl implements CartService {
             cart.setCreatedAt(LocalDateTime.now());
             cart.setIsDelete(false);
             if (account == null) {
-                // create session id and attach
+                // Gán thời hạn riêng cho cart của khách chưa đăng nhập.
                 String sid = java.util.UUID.randomUUID().toString();
                 cart.setSessionId(sid);
+                cart.setExpiresAt(LocalDateTime.now().plusDays(guestCartExpirationDays));
             }
             cart = cartRepository.save(cart);
             if (account == null) {
@@ -238,6 +249,19 @@ public class CartServiceImpl implements CartService {
             }
         }
         return cart;
+    }
+
+    /** Dọn cart anonymous hết hạn và các dòng sản phẩm liên quan mỗi ngày. */
+    @Scheduled(cron = "${app.cart.cleanup-cron:0 0 3 * * *}")
+    @Transactional
+    public void deleteExpiredGuestCarts() {
+        List<Carts> expiredCarts = cartRepository
+                .findByAccountIsNullAndExpiresAtBefore(LocalDateTime.now());
+        for (Carts cart : expiredCarts) {
+            List<CartItems> items = cartItemRepository.findByCart(cart);
+            cartItemRepository.deleteAll(items);
+            cartRepository.delete(cart);
+        }
     }
 
     /** Đọc authentication hiện tại và truy vấn account tương ứng trong database. */

@@ -1,4 +1,4 @@
-package org.example.shopping.order.service.impl;
+package org.example.shopping.service.impl;
 
 import org.example.shopping.entity.Accounts;
 import org.example.shopping.entity.CartItems;
@@ -7,9 +7,9 @@ import org.example.shopping.entity.OrderDetails;
 import org.example.shopping.entity.OrderStatus;
 import org.example.shopping.entity.Orders;
 import org.example.shopping.entity.Products;
-import org.example.shopping.order.model.CheckoutRequest;
-import org.example.shopping.order.repository.OrderDetailRepository;
-import org.example.shopping.order.repository.OrderRepository;
+import org.example.shopping.model.CheckoutRequest;
+import org.example.shopping.repository.OrderDetailRepository;
+import org.example.shopping.repository.OrderRepository;
 import org.example.shopping.repository.AccountRepository;
 import org.example.shopping.repository.CartItemRepository;
 import org.example.shopping.repository.ProductRepository;
@@ -119,6 +119,12 @@ public class OrderCheckoutService {
             }
             if (cartItem.getQuantity() < 0) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Số lượng sản phẩm phải lớn hơn hoặc bằng 0");
+            }
+            Products product = getAvailableProduct(cartItem.getProduct().getId());
+            if (cartItem.getQuantity() > product.getQuantity()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Sản phẩm " + product.getName() + " không đủ tồn kho. Tồn kho hiện tại: "
+                                + product.getQuantity() + ", số lượng đặt: " + cartItem.getQuantity());
             }
         }
     }

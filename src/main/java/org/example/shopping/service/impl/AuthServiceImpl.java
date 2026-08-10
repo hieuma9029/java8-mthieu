@@ -6,6 +6,7 @@ import org.example.shopping.model.RegisterRequest;
 import org.example.shopping.repository.AccountRepository;
 import org.example.shopping.service.AccountService;
 import org.example.shopping.service.AuthService;
+import org.example.shopping.security.JwtService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -32,24 +33,27 @@ public class AuthServiceImpl implements AuthService {
     private final CartServiceImpl cartService;
     private final PasswordEncoder passwordEncoder;
     private final javax.servlet.http.HttpSession httpSession;
+    private final JwtService jwtService;
 
     public AuthServiceImpl(AuthenticationManager authenticationManager,
                            AccountRepository accountRepository,
                            AccountService accountService,
                            CartServiceImpl cartService,
                            PasswordEncoder passwordEncoder,
-                           javax.servlet.http.HttpSession httpSession) {
+                           javax.servlet.http.HttpSession httpSession,
+                           JwtService jwtService) {
         this.authenticationManager = authenticationManager;
         this.accountRepository = accountRepository;
         this.accountService = accountService;
         this.cartService = cartService;
         this.passwordEncoder = passwordEncoder;
         this.httpSession = httpSession;
+        this.jwtService = jwtService;
     }
 
     @Override
     /**
-     * Xác thực người dùng bằng username/password và khởi tạo session cho phiên đăng nhập.
+    * Xác thực người dùng bằng username/password và phát JWT cho frontend.
      *
      * @param request thông tin đăng nhập từ client
      * @return response chứa thông tin user khi đăng nhập thành công hoặc lỗi 401 khi sai thông tin
@@ -69,7 +73,9 @@ public class AuthServiceImpl implements AuthService {
             } catch (Exception ex) {
                 // swallow merge errors to not block login; log if needed
             }
-            return ResponseEntity.ok(buildSuccessResponse(account));
+            Map<String, Object> result = buildSuccessResponse(account);
+            result.put("token", jwtService.generateToken(authentication.getName(), authentication.getAuthorities()));
+            return ResponseEntity.ok(result);
         } catch (BadCredentialsException ex) {
             return ResponseEntity.status(401)
                     .body(buildErrorResponse("Tên đăng nhập hoặc mật khẩu không đúng"));
@@ -103,7 +109,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     /**
-     * Đăng xuất người dùng bằng cách hủy session hiện tại và xoá context xác thực.
+    * Đăng xuất người dùng bằng cách xoá context xác thực hiện tại.
      *
      * @param request request HTTP hiện tại
      * @param response response HTTP hiện tại

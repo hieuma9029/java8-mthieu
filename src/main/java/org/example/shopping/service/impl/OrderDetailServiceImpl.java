@@ -1,8 +1,9 @@
-package org.example.shopping.order.service.impl;
+package org.example.shopping.service.impl;
 
 import org.example.shopping.entity.OrderDetails;
-import org.example.shopping.order.repository.OrderDetailRepository;
-import org.example.shopping.order.service.OrderDetailService;
+import org.example.shopping.service.impl.BaseServiceImpl;
+import org.example.shopping.repository.OrderDetailRepository;
+import org.example.shopping.service.OrderDetailService;
 import org.example.shopping.service.impl.BaseServiceImpl;
 import org.springframework.stereotype.Service;
 
